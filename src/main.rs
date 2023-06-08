@@ -1,5 +1,5 @@
 use crossterm::style::Stylize;
-use lib::{car::Car, player::Player, stat::Stat, still::Still, sutil};
+use lib::{car::Car, player::Player, route::Route, stat::Stat, still::Still, sutil};
 use rand::Rng;
 use std::io;
 
@@ -61,15 +61,81 @@ fn brew(mut player: &mut Player) {
     println!("Alright gambler, let's brew some backyard shine.");
     println!("{}", player.still.to_string());
     //take into account player's still size and quality
-    let die = get_random_number(3); // This does nothing. Remove it later.
-    println!("You brewed, for instance, \"OKAY HOOCH\"");
+    let quality = get_random_number(3);
+    match quality {
+        1 => {
+            println!(
+                "Yeesh! You brewed some '{}' Good luck getting rid of this!",
+                "Rotgut Wiskee".red()
+            );
+        }
+        2 => {
+            println!(
+                "You brewed some '{}.' This will be plenty easy to move!",
+                "OK Hooch".yellow()
+            );
+        }
+        3 => {
+            println!(
+                "Hoo wee! This here's some '{}!' Worth top dollar, to the right buyer...",
+                "White Lightning".green()
+            )
+        }
+        _ => panic!("BAD NUMBER!"),
+    }
 }
 
 fn drive(mut player: &mut Player) {
-    let route1 = 24;
-    let route2 = 36;
-    let route3 = 48;
-    let route4 = 36;
+    let routes: Vec<Route> = vec![
+        // Route 1
+        Route {
+            name: String::from("Route 1"),
+            distance: 24,
+            heat: 0,
+            prefereces: vec![4, 3, 2],
+            prices: vec![5, 3, 2],
+        },
+        // Route 2
+        Route {
+            name: String::from("Route 2"),
+            distance: 24,
+            heat: 0,
+            prefereces: vec![4, 3, 2],
+            prices: vec![5, 3, 2],
+        },
+        // Route 3
+        Route {
+            name: String::from("Route 3"),
+            distance: 24,
+            heat: 0,
+            prefereces: vec![4, 3, 2],
+            prices: vec![5, 3, 2],
+        },
+        // Route 4
+        Route {
+            name: String::from("Route 4"),
+            distance: 24,
+            heat: 0,
+            prefereces: vec![4, 3, 2],
+            prices: vec![5, 3, 2],
+        },
+        // Route 5
+        Route {
+            name: String::from("Route 5"),
+            distance: 24,
+            heat: 0,
+            prefereces: vec![4, 3, 2],
+            prices: vec![5, 3, 2],
+        },
+        // Route 6
+        Route {
+            name: String::from("Route 6"),
+            distance: 24,
+            heat: 0,
+            prefereces: vec![4, 3, 2],
+            prices: vec![5, 3, 2],
+        },
+    ];
     println!("{}", "# STAGE 2 of 4: DRIVE \t\t#####".yellow());
     println!("Buckle up, Gambler. It's time to drive!");
     println!("Your Car:\n{}", player.car.to_string());
@@ -77,14 +143,6 @@ fn drive(mut player: &mut Player) {
     // Each route has: distance, roll countdown, 'heat' (cops base roll/roll modifier), and price & preference
     // get input
     // start a for/while countdown. Nice n easy. Remember that we'll be counting down distance AND rolls. Pick one.
-    for i in 0..5 {
-        print!("Progress: {}/5\r", i + 1);
-        for j in 0..i {
-            println!("Line {}: {}\r", j + 1, " ".repeat(j));
-        }
-        std::thread::sleep(std::time::Duration::from_secs(1));
-    }
-
     println!("You made it! Just in the nick of time, too!");
 }
 
