@@ -1,104 +1,11 @@
 use crossterm::style::Stylize;
+use lib::{car::Car, player::Player, stat::Stat, still::Still, sutil};
 use rand::Rng;
 use std::io;
 
-static MAX_STAT: u32 = 12;
+pub mod lib;
 
-// STAT #####################################################################################
-pub struct Stat {
-    real: u32,
-    max: u32,
-}
-impl Stat {
-    fn new(real: u32, max: u32) -> Self {
-        Stat { real, max }
-    }
-}
-impl std::fmt::Display for Stat {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            progress_bar_upgradeable(self.real, self.max, MAX_STAT)
-        )
-    }
-}
-
-// CAR ######################################################################################
-pub struct Car {
-    name: String,
-    spd: Stat,
-    dur: Stat,
-    cgo: Stat,
-    inc: Stat,
-    flavor: String,
-}
-impl Car {
-    fn new() -> Self {
-        Car {
-            name: String::from(""),
-            spd: Stat::new(0, 0),
-            dur: Stat::new(0, 0),
-            cgo: Stat::new(0, 0),
-            inc: Stat::new(0, 0),
-            flavor: String::from(""),
-        }
-    }
-}
-impl std::string::ToString for Car {
-    fn to_string(&self) -> String {
-        format!(
-            "{}\n------------------------------\nSPD: {} | DUR: {} | CGO: {} | INC: {}\n{}",
-            self.name, self.spd, self.dur, self.cgo, self.inc, self.flavor
-        )
-    }
-}
-
-// STILL ####################################################################################
-pub struct Still {
-    // Later, implement Vessel, Heat Source, Boiler, Condenser, and Barrels.
-    spd: Stat,
-    vol: Stat,
-    qlt: Stat, // is there a better abbreviation for "quality?"
-}
-impl Still {
-    fn new() -> Self {
-        Still {
-            spd: Stat::new(0, 0),
-            vol: Stat::new(0, 0),
-            qlt: Stat::new(0, 0),
-        }
-    }
-}
-impl std::string::ToString for Still {
-    fn to_string(&self) -> String {
-        format!(
-            "Your Still:\n------------------------------\nSPEED: {} | VOLUME: {} | QUALITY: {}",
-            self.spd, self.vol, self.qlt
-        )
-    }
-}
-
-// PLAYER ###################################################################################
-pub struct Player {
-    money: i32,
-    car: Car,
-    still: Still,
-}
-impl Player {
-    fn new() -> Self {
-        Player {
-            money: 0,
-            car: Car::new(),
-            still: Still::new(),
-        }
-    }
-}
-impl std::string::ToString for Player {
-    fn to_string(&self) -> String {
-        format!("${}", self.money)
-    }
-}
+pub static MAX_STAT: u32 = 12;
 
 // MAIN #####################################################################################
 fn main() {
@@ -124,7 +31,7 @@ fn main() {
             }
             println!("Buy? (y/n)");
             if get_valid_input(&['y', 'n']).unwrap() == 'y' {
-                barter(&mut player);
+                buy(&mut player);
             }
 
             if player.money >= 100000 {
@@ -150,13 +57,24 @@ fn get_random_number(_d: i32) -> i32 {
 
 // GAMEPLAY LOOP STARTS HERE! ###################################################################################
 fn brew(mut player: &mut Player) {
+    println!("{}", "# STAGE 1 of 4: BREW \t\t#####".yellow());
+    println!("Alright gambler, let's brew some backyard shine.");
+    println!("{}", player.still.to_string());
     //take into account player's still size and quality
-    let _ = get_random_number(3); // This does nothing. Remove it later.
+    let die = get_random_number(3); // This does nothing. Remove it later.
     println!("You brewed, for instance, \"OKAY HOOCH\"");
 }
 
 fn drive(mut player: &mut Player) {
+    let route1 = 24;
+    let route2 = 36;
+    let route3 = 48;
+    let route4 = 36;
+    println!("{}", "# STAGE 2 of 4: DRIVE \t\t#####".yellow());
+    println!("Buckle up, Gambler. It's time to drive!");
+    println!("Your Car:\n{}", player.car.to_string());
     // Give route options
+    // Each route has: distance, roll countdown, and 'heat' (cops base roll/roll modifier)
     // get input
     // start a for/while countdown. Nice n easy. Remember that we'll be counting down distance AND rolls. Pick one.
     for i in 0..5 {
@@ -171,10 +89,12 @@ fn drive(mut player: &mut Player) {
 }
 
 fn barter(mut player: &mut Player) {
+    println!("{}", "# STAGE 3 of 4: BARTER \t#####".yellow());
     player.money += 10;
 }
 
 fn buy(mut player: &mut Player) {
+    println!("{}", "# STAGE 4 of 4: BUY \t\t#####".yellow());
     player.money -= 5;
 }
 
@@ -210,42 +130,4 @@ fn get_valid_input(chars: &[char]) -> Option<char> {
     }
 
     Some(answer)
-}
-
-fn progress_bar(real: u32, max: u32) -> String {
-    let mut result: String = String::from("[");
-    for _i in 0..real {
-        result.push('=');
-    }
-    for _i in real..max {
-        result.push(' ');
-    }
-    result.push(']');
-    result
-}
-fn progress_bar_upgradeable(real: u32, max: u32, scale: u32) -> String {
-    let mut result: String = String::from("[");
-    for _i in 0..real {
-        result.push('=');
-    }
-    for _i in real..max {
-        result.push('-');
-    }
-    for _i in real..scale {
-        result.push(' ');
-    }
-    result.push(']');
-    result
-}
-fn progress_bar_head(real: u32, max: u32) -> String {
-    let mut result: String = String::from("[");
-    for _i in 0..real - 1 {
-        result.push('=');
-    }
-    result.push('#');
-    for _i in real..max {
-        result.push('-');
-    }
-    result.push(']');
-    result
 }
