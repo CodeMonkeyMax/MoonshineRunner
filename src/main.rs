@@ -74,7 +74,7 @@ fn drive(mut player: &mut Player) {
     println!("Buckle up, Gambler. It's time to drive!");
     println!("Your Car:\n{}", player.car.to_string());
     // Give route options
-    // Each route has: distance, roll countdown, and 'heat' (cops base roll/roll modifier)
+    // Each route has: distance, roll countdown, 'heat' (cops base roll/roll modifier), and price & preference
     // get input
     // start a for/while countdown. Nice n easy. Remember that we'll be counting down distance AND rolls. Pick one.
     for i in 0..5 {
