@@ -12,9 +12,7 @@ fn main() {
     println!("Hello, Gambler!");
     let mut player: Player = start();
 
-    for i in 0..50 {
-        drive(&mut player);
-    }
+    // initialization done. Do your tesing here.
 
     println!("⚀⚁⚂⚃⚄⚅!");
     println!("Quit at any time by answering \'q.\'");
