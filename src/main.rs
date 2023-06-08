@@ -11,6 +11,11 @@ pub static MAX_STAT: u32 = 12;
 fn main() {
     println!("Hello, Gambler!");
     let mut player: Player = start();
+
+    for i in 0..50 {
+        drive(&mut player);
+    }
+
     println!("⚀⚁⚂⚃⚄⚅!");
     println!("Quit at any time by answering \'q.\'");
     let mut quit = false;
@@ -81,7 +86,7 @@ fn brew(mut player: &mut Player) {
                 "White Lightning".green()
             )
         }
-        _ => panic!("BAD NUMBER!"),
+        _ => panic!("{}", "BAD NUMBER!".red()),
     }
 }
 
@@ -136,9 +141,20 @@ fn drive(mut player: &mut Player) {
             prices: vec![5, 3, 2],
         },
     ];
+    let mut chosen_routes: Vec<usize> = Vec::new();
     println!("{}", "# STAGE 2 of 4: DRIVE \t\t#####".yellow());
     println!("Buckle up, Gambler. It's time to drive!");
     println!("Your Car:\n{}", player.car.to_string());
+    while chosen_routes.len() < 3 {
+        let i: usize = get_random_number((routes.len() - 1) as i32) as usize;
+        if !chosen_routes.contains(&i) {
+            chosen_routes.push(i as usize);
+        }
+    }
+    println!("Available Routes:\n");
+    for route_index in chosen_routes {
+        println!("{}\n", routes[route_index]);
+    }
     // Give route options
     // Each route has: distance, roll countdown, 'heat' (cops base roll/roll modifier), and price & preference
     // get input
