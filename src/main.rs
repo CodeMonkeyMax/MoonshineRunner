@@ -8,6 +8,7 @@ pub mod lib;
 
 pub static MAX_STAT: u32 = 12;
 pub static CAR_STAT_LENGTH: u8 = 12;
+pub static MONEY_MULT: f64 = 10.0;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // MAIN ////////////////////////////////////////////////////////////////////////////////
@@ -85,18 +86,24 @@ fn brew(mut player: &mut Player) {
                 "Yeesh! You brewed some '{}' Good luck getting rid of this!",
                 "Rotgut Wiskee".red()
             );
+            player.car.cargo_quantity = player.still.vol.real;
+            player.car.cargo_quality = 1;
         }
         2 => {
             println!(
                 "You brewed some '{}.' This will be plenty easy to move!",
                 "OK Hooch".yellow()
             );
+            player.car.cargo_quantity = player.still.vol.real;
+            player.car.cargo_quality = 2;
         }
         3 => {
             println!(
                 "Hoo wee! This here's some '{}!' Worth top dollar, to the right buyer...",
                 "White Lightning".green()
-            )
+            );
+            player.car.cargo_quantity = player.still.vol.real;
+            player.car.cargo_quality = 1;
         }
         _ => panic!("{}", "BAD NUMBER!".red()),
     }
@@ -167,6 +174,9 @@ fn drive(mut player: &mut Player) -> i32 {
             }
         };
 
+        if distance_traveled > route_distance {
+            distance_traveled = route_distance;
+        }
         println!("{}", progress_bar_head(distance_traveled, route_distance));
 
         println!(
@@ -186,11 +196,16 @@ fn drive(mut player: &mut Player) -> i32 {
         let total_heat: u32 = police_roll as u32 + heat;
         if other_die as u32 + player.car.inc.real < total_heat {
             println!("You've been made! Floor it!");
+            prompt_to_continue(Some("roll".to_string()));
             player_spotted = true;
         } else {
             println!("Good work, gambler. They haven't spotted you yet.");
         }
         if player_spotted {
+            if distance_traveled == route_distance {
+                println!("Ha! You squeaked right by 'em!");
+                return player.car.dur.real as i32 + 1;
+            }
             let chase_result = chase(&mut player, route_distance, distance_traveled, heat);
             match chase_result {
                 -1 => {
@@ -211,8 +226,33 @@ fn drive(mut player: &mut Player) -> i32 {
 }
 
 fn barter(mut player: &mut Player, cargo_status: i32) {
+    let mut mult: f64 = 1.0;
     println!("{}", "# STAGE 3 of 4: BARTER \t#####".yellow());
-    player.money += 10;
+    match cargo_status {
+        -1 => panic!("Player has negative cargo status - should not be in 'barter()' at all!"),
+        0 => {
+            mult = 0.5;
+        }
+        _ => {
+            mult = (cargo_status as f64 / (2.0 * player.car.dur.real as f64)) + 0.5;
+        }
+    }
+    println!("DEBUG: Mult = {}", mult);
+    let die = get_random_number(6);
+    let money_increment = match die {
+        1 => mult * 0.65 * cargo_status as f64 * player.car.cargo_quality as f64,
+        2 => mult * 0.75 * cargo_status as f64 * player.car.cargo_quality as f64,
+        3 => mult * 0.85 * cargo_status as f64 * player.car.cargo_quality as f64,
+        4 => mult * 0.95 * cargo_status as f64 * player.car.cargo_quality as f64,
+        5 => mult * 1.0 * cargo_status as f64 * player.car.cargo_quality as f64,
+        6 => mult * 1.15 * cargo_status as f64 * player.car.cargo_quality as f64,
+        _ => panic!("The die has died and turned into nonsense. Seek professional help."),
+    };
+    println!(
+        "You rolled a {}. Given this and the results of your drive, you get: ${}",
+        die, money_increment as i32
+    );
+    player.money += money_increment as i32;
 }
 
 fn buy(mut player: &mut Player) {
@@ -313,7 +353,7 @@ fn chase(
         }
         num_rolls_left -= 1;
         if num_rolls_left == 0 {
-            if emergency_roll() > 10 {
+            if emergency_roll() < 10 {
                 return -1;
             } else {
                 return 0;
@@ -477,10 +517,13 @@ fn wait_for_enter() {
 
 fn prompt_to_continue(string: Option<String>) {
     match string {
-        Some(contents) => println!(
-            "Press ENTER/RETURN to CONTINUE to {}",
-            contents.to_uppercase()
-        ),
+        Some(contents) => match contents.as_str() {
+            "roll" => println!("Press ENTER/RETURN to ROLL!"),
+            _ => println!(
+                "Press ENTER/RETURN to CONTINUE to {}",
+                contents.to_uppercase()
+            ),
+        },
         None => println!("Press ENTER/RETURN to CONTINUE..."),
     }
     wait_for_enter();

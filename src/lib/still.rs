@@ -2,9 +2,9 @@ use super::{stat::Stat, sutil::*};
 
 pub struct Still {
     // Later, implement Vessel, Heat Source, Boiler, Condenser, and Barrels.
-    spd: Stat,
-    vol: Stat,
-    qlt: Stat, // is there a better abbreviation for "quality?"
+    pub spd: Stat,
+    pub vol: Stat,
+    pub qlt: Stat, // is there a better abbreviation for "quality?"
 }
 impl Still {
     pub fn new() -> Self {
