@@ -240,12 +240,12 @@ fn barter(mut player: &mut Player, cargo_status: i32) {
     println!("DEBUG: Mult = {}", mult);
     let die = get_random_number(6);
     let money_increment = match die {
-        1 => mult * 0.65 * cargo_status as f64 * player.car.cargo_quality as f64,
-        2 => mult * 0.75 * cargo_status as f64 * player.car.cargo_quality as f64,
-        3 => mult * 0.85 * cargo_status as f64 * player.car.cargo_quality as f64,
-        4 => mult * 0.95 * cargo_status as f64 * player.car.cargo_quality as f64,
-        5 => mult * 1.0 * cargo_status as f64 * player.car.cargo_quality as f64,
-        6 => mult * 1.15 * cargo_status as f64 * player.car.cargo_quality as f64,
+        1 => mult * 0.65 * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT,
+        2 => mult * 0.75 * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT,
+        3 => mult * 0.85 * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT,
+        4 => mult * 0.95 * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT,
+        5 => mult * 1.0 * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT,
+        6 => mult * 1.15 * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT,
         _ => panic!("The die has died and turned into nonsense. Seek professional help."),
     };
     println!(
@@ -258,75 +258,181 @@ fn barter(mut player: &mut Player, cargo_status: i32) {
 fn buy(mut player: &mut Player) {
     println!("{}", "# STAGE 4 of 4: BUY \t#####".yellow());
     println!(
-        "Your Car: {}\nYour Still: {}",
+        "Your Money: {}\nYour Car: {}\nYour Still: {}",
+        player.money.to_string(),
         player.car.to_string(),
         player.still.to_string()
     );
     println!("Do you want to buy any upgrades? (y/n)");
-    if get_valid_input(&['y', 'n']) == Some('y') {
+    let mut user_entry: Option<char> = get_valid_input(&['y', 'n']);
+    while user_entry != Some('n') {
         println!("Do you want to buy upgrades for your CAR or for your STILL? (c/s)");
-        match get_valid_input(&['c', 's']) {
-            Some('c') => {
-                println!("OK, let's look at some car upgrades.");
-                println!("Do you want to upgrade SPEED, DURABILITY or CARGO? (s/d/c)");
-                match get_valid_input(&['s', 'đ', 'c']) {
-                    Some('s') => {
-                        player.car.spd.real += 1;
-                        player.money -= 10;
-                    }
-                    Some('d') => {
-                        player.car.dur.real += 1;
-                        player.money -= 10;
-                    }
-                    Some('c') => {
-                        player.car.cgo.real += 3;
-                        player.money -= 10;
-                    }
-                    Some(c) => {
-                        panic!("How did you get {}?", c);
-                    }
-                    None => {
-                        panic!("This isn't supposed to happen.");
-                    }
-                }
-            }
-            Some('s') => {
-                println!("OK, let's look at some still upgrades.");
-                println!("Do you want to upgrade VOLUME, SPEED or QUALITY? (v/s/q)");
-                match get_valid_input(&['v', 's', 'q']) {
-                    Some('v') => {
-                        player.still.vol.real += 1;
-                        player.money -= 10;
-                    }
-                    Some('s') => {
-                        player.still.spd.real += 1;
-                        player.money -= 10;
-                    }
-                    Some('q') => {
-                        player.still.qlt.real += 1;
-                        player.money -= 10;
-                    }
-                    Some(c) => {
-                        panic!("How did you get {}?", c);
-                    }
-                    None => {
-                        panic!("This isn't supposed to happen.");
-                    }
-                }
-            }
-            Some(c) => {
-                panic!("How did you get {}?", c);
-            }
-            None => {
-                panic!("This isn't supposed to happen.");
-            }
+        if shop_category(player, get_valid_input(&['c', 's']).unwrap()) {
+            println!("Congratulations on your snazzy new upgrade.");
         }
+        println!("Shop Again? (y/n)");
+        user_entry = get_valid_input(&['y', 'n']);
     }
+    if user_entry == Some('y') {}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // TIER 3  ////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+fn shop_category(mut player: &mut Player, category_code: char) -> bool {
+    let print_msg: String = format!("Your Money: {}", player.money);
+    println!("{}", print_msg.green());
+    match category_code {
+        'c' => {
+            println!("OK, let's look at some car upgrades.");
+            println!(
+                "Do you want to upgrade:\nSPEED (${}), DURABILITY (${}) or CARGO (${})? (s/d/c)",
+                player.car.spd.real * 10,
+                player.car.dur.real * 10,
+                player.car.cgo.real * 10
+            );
+            return try_buy(
+                player,
+                category_code,
+                get_valid_input(&['s', 'd', 'c']).unwrap(),
+            );
+        }
+        's' => {
+            println!("OK, let's look at some still upgrades.");
+            println!(
+                "Do you want to upgrade:\nVOLUME (${}), SPEED (${}) or QUALITY (${})? (v/s/q)",
+                player.still.vol.real * 10,
+                player.still.spd.real * 10,
+                player.still.qlt.real * 10
+            );
+            return try_buy(
+                player,
+                category_code,
+                get_valid_input(&['v', 's', 'q']).unwrap(),
+            );
+        }
+        _ => {
+            return false;
+        }
+    }
+}
+
+fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> bool {
+    match category_code {
+        // Car Upgrades
+        'c' => match item_code {
+            's' => {
+                if player.car.spd.real < player.car.spd.max {
+                    let cost = (player.car.spd.real * 10) as i32;
+                    if player.money >= cost {
+                        player.car.spd.real += 1;
+                        player.money -= cost;
+                        return true;
+                    } else {
+                        println!("Not enough change, chump!");
+                    }
+                } else {
+                    println!("You're already maxed out, speed racer!");
+                }
+                return false;
+            }
+            'd' => {
+                if player.car.dur.real < player.car.dur.max {
+                    let cost = (player.car.dur.real * 10) as i32;
+                    if player.money >= cost {
+                        player.car.dur.real += 1;
+                        player.money -= cost;
+                        return true;
+                    } else {
+                        println!("Not enough change, chump!");
+                    }
+                } else {
+                    println!("You're already maxed out, speed racer!");
+                }
+                return false;
+            }
+            'c' => {
+                if player.car.cgo.real < player.car.cgo.max {
+                    let cost = (player.car.cgo.real * 10) as i32;
+                    if player.money >= cost {
+                        player.car.cgo.real += 1;
+                        player.money -= cost;
+                        return true;
+                    } else {
+                        println!("Not enough change, chump!");
+                    }
+                } else {
+                    println!("You're already maxed out, speed racer!");
+                }
+                return false;
+            }
+            c => {
+                panic!("How did you get {}?", c);
+            }
+            _ => {
+                panic!("This isn't supposed to happen.");
+            }
+        },
+        // Still Upgrades
+        's' => match item_code {
+            's' => {
+                if player.car.spd.real < player.car.spd.max {
+                    let cost = (player.car.spd.real * 10) as i32;
+                    if player.money >= cost {
+                        player.car.spd.real += 1;
+                        player.money -= cost;
+                        return true;
+                    } else {
+                        println!("Not enough change, chump!");
+                    }
+                } else {
+                    println!("Woah there Pappy, you're already maxed out!");
+                }
+                return false;
+            }
+            'v' => {
+                if player.car.dur.real < player.car.dur.max {
+                    let cost = (player.car.dur.real * 10) as i32;
+                    if player.money >= cost {
+                        player.car.dur.real += 1;
+                        player.money -= cost;
+                        return true;
+                    } else {
+                        println!("Not enough change, chump!");
+                    }
+                } else {
+                    println!("Woah there Pappy, you're already maxed out!");
+                }
+                return false;
+            }
+            'q' => {
+                if player.car.cgo.real < player.car.cgo.max {
+                    let cost = (player.car.cgo.real * 10) as i32;
+                    if player.money >= cost {
+                        player.car.cgo.real += 1;
+                        player.money -= cost;
+                        return true;
+                    } else {
+                        println!("Not enough change, chump!");
+                    }
+                } else {
+                    println!("Woah there Pappy, you're already maxed out!");
+                }
+                return false;
+            }
+            c => {
+                panic!("How did you get {}?", c);
+            }
+            _ => {
+                panic!("This isn't supposed to happen.");
+            }
+        },
+        _ => {
+            panic!("try_buy(): Invalid Category Code!");
+        }
+    }
+}
 
 fn chase(
     mut player: &mut Player,
@@ -335,10 +441,7 @@ fn chase(
     heat: u32,
 ) -> i32 {
     // here's where I have to decide what the formula should be. Maybe 1 roll for every 3-4 units of distance left? That's what's fair, as 3.5 is the average die roll.
-    let mut num_rolls_left = (route_distance - distance_traveled) / (player.car.spd.real + 4);
-    if num_rolls_left == 0 {
-        num_rolls_left = 1;
-    }
+    let mut num_rolls_left = 1 + (route_distance - distance_traveled) / (player.car.spd.real + 4);
     let mut current_durability = player.car.dur.real;
     while num_rolls_left > 0 {
         println!(
@@ -419,7 +522,7 @@ fn chase(
             println!("You might just make it yet!");
         }
         num_rolls_left -= 1;
-        if num_rolls_left == 0 {
+        if num_rolls_left == 0 && distance_traveled < route_distance {
             if emergency_roll() < 10 {
                 return -1;
             } else {
