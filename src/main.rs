@@ -257,7 +257,71 @@ fn barter(mut player: &mut Player, cargo_status: i32) {
 
 fn buy(mut player: &mut Player) {
     println!("{}", "# STAGE 4 of 4: BUY \t#####".yellow());
-    player.money -= 5;
+    println!(
+        "Your Car: {}\nYour Still: {}",
+        player.car.to_string(),
+        player.still.to_string()
+    );
+    println!("Do you want to buy any upgrades? (y/n)");
+    if get_valid_input(&['y', 'n']) == Some('y') {
+        println!("Do you want to buy upgrades for your CAR or for your STILL? (c/s)");
+        match get_valid_input(&['c', 's']) {
+            Some('c') => {
+                println!("OK, let's look at some car upgrades.");
+                println!("Do you want to upgrade SPEED, DURABILITY or CARGO? (s/d/c)");
+                match get_valid_input(&['s', 'đ', 'c']) {
+                    Some('s') => {
+                        player.car.spd.real += 1;
+                        player.money -= 10;
+                    }
+                    Some('d') => {
+                        player.car.dur.real += 1;
+                        player.money -= 10;
+                    }
+                    Some('c') => {
+                        player.car.cgo.real += 3;
+                        player.money -= 10;
+                    }
+                    Some(c) => {
+                        panic!("How did you get {}?", c);
+                    }
+                    None => {
+                        panic!("This isn't supposed to happen.");
+                    }
+                }
+            }
+            Some('s') => {
+                println!("OK, let's look at some still upgrades.");
+                println!("Do you want to upgrade VOLUME, SPEED or QUALITY? (v/s/q)");
+                match get_valid_input(&['v', 's', 'q']) {
+                    Some('v') => {
+                        player.still.vol.real += 1;
+                        player.money -= 10;
+                    }
+                    Some('s') => {
+                        player.still.spd.real += 1;
+                        player.money -= 10;
+                    }
+                    Some('q') => {
+                        player.still.qlt.real += 1;
+                        player.money -= 10;
+                    }
+                    Some(c) => {
+                        panic!("How did you get {}?", c);
+                    }
+                    None => {
+                        panic!("This isn't supposed to happen.");
+                    }
+                }
+            }
+            Some(c) => {
+                panic!("How did you get {}?", c);
+            }
+            None => {
+                panic!("This isn't supposed to happen.");
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -272,6 +336,9 @@ fn chase(
 ) -> i32 {
     // here's where I have to decide what the formula should be. Maybe 1 roll for every 3-4 units of distance left? That's what's fair, as 3.5 is the average die roll.
     let mut num_rolls_left = (route_distance - distance_traveled) / (player.car.spd.real + 4);
+    if num_rolls_left == 0 {
+        num_rolls_left = 1;
+    }
     let mut current_durability = player.car.dur.real;
     while num_rolls_left > 0 {
         println!(
@@ -356,7 +423,8 @@ fn chase(
             if emergency_roll() < 10 {
                 return -1;
             } else {
-                return 0;
+                println!("{}", "YOU MADE IT!".yellow());
+                return current_durability as i32;
             }
         }
     }
