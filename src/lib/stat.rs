@@ -2,8 +2,8 @@ use super::sutil::*;
 use crate::MAX_STAT;
 
 pub struct Stat {
-    real: u32,
-    max: u32,
+    pub real: u32,
+    pub max: u32,
 }
 impl Stat {
     pub fn new(real: u32, max: u32) -> Self {

@@ -1,3 +1,4 @@
+use crate::MAX_STAT;
 use crossterm::style::Stylize;
 
 pub struct Route {
@@ -11,7 +12,7 @@ impl std::fmt::Display for Route {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}:\nDistance: {}\tHeat: {}\nPreferences:\nRotgut Wiskee: {}\nOK Hooch: {}\nWhite Lightning: {}",
+            "{}:\nDistance: {}\tHeat: {}\n-----------------------\nPreferences:\nRotgut Wiskee: {}\nOK Hooch: {}\nWhite Lightning: {}",
 					&self.name.to_string().blue(),
 					self.distance,
 					self.heat,
