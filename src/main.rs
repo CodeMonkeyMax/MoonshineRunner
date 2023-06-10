@@ -41,6 +41,7 @@ fn main() {
 
             //BARTER
             if cargo_status > 0 {
+                clear();
                 prompt_to_continue(Some("barter stage".to_string()));
                 barter(&mut player, cargo_status);
             } else if cargo_status < 0 {
@@ -308,13 +309,41 @@ fn auction_house(mut player: &mut Player) {
     let car2: Car = Car::generate(2);
     let car3: Car = Car::generate(3);
     println!(
-        "| Available Cars: \n{}\n{}\n{}",
+        "| Available Cars: \n| {}\n| ${}\n| {}\n| ${}\n| {}\n| ${}",
         car1.to_string(),
+        car1.price.to_string(),
         car2.to_string(),
-        car3.to_string()
+        car2.price.to_string(),
+        car3.to_string(),
+        car3.price.to_string(),
     );
-    println!("| Imagine how cool this will be once you can buy cars!");
-    prompt_to_continue(None);
+    println!("Select a car you'd like to buy (1/2/3), or enter '0'");
+    match get_valid_input(&['1', '2', '3']).unwrap() {
+        '1' => {
+            if player.money >= car1.price as i32 {
+                player.car = car1;
+            } else {
+                println!("You don't have enough money to buy this car.");
+            }
+        }
+        '2' => {
+            if player.money >= car2.price as i32 {
+                player.car = car2;
+            } else {
+                println!("You don't have enough money to buy this car.");
+            }
+        }
+        '3' => {
+            if player.money >= car3.price as i32 {
+                player.car = car3;
+            } else {
+                println!("You don't have enough money to buy this car.");
+            }
+        }
+        _ => {
+            panic!("Invalid Input")
+        }
+    }
 }
 
 fn shop_category(mut player: &mut Player, category_code: char) -> bool {
@@ -476,7 +505,7 @@ fn chase(mut player: &mut Player, route: Route, mut distance_traveled: u32, heat
     let route_distance = route.distance;
     let mut num_rolls_left = 1 + (route_distance - distance_traveled) / (player.car.spd.real + 4);
     // Get Player Car Durability
-    let mut current_durability = player.car.dur.real;
+    player.car.current_durability = player.car.dur.real;
 
     // Start Loop
     while num_rolls_left > 0 {
@@ -519,7 +548,8 @@ fn chase(mut player: &mut Player, route: Route, mut distance_traveled: u32, heat
         // Consequences...
         print_header(player, 2);
         print_drive_stage(player, distance_traveled, route_distance, &route.name);
-        // Give Info
+        print_roll(die1, die2); // Should CROSS OUT die that's been used
+                                // Give Info
         println!(
             "| Cops' Roll:\t\t\t[{}] {} + {} -> {} Total Attack",
             die_from_u8(police_roll),
@@ -543,8 +573,8 @@ fn chase(mut player: &mut Player, route: Route, mut distance_traveled: u32, heat
                 "| Cops' Attack exceeds your Defense:\n| {}",
                 "You've been rammed!".red()
             );
-            current_durability -= 1;
-            if current_durability == 0 {
+            player.car.current_durability -= 1;
+            if player.car.current_durability == 0 {
                 return 0;
             }
         } else if distance_traveled < route_distance {
@@ -556,13 +586,13 @@ fn chase(mut player: &mut Player, route: Route, mut distance_traveled: u32, heat
                 return -1;
             } else {
                 println!("{}", "YOU MADE IT!!".bold().green());
-                return current_durability as i32;
+                return player.car.current_durability as i32;
             }
         }
         prompt_to_continue(None);
         clear();
     }
-    current_durability as i32
+    player.car.current_durability as i32
 }
 
 fn emergency_roll() -> i32 {
@@ -726,6 +756,18 @@ fn wait_for_enter() {
     loop {
         if let Ok(event::Event::Key(KeyEvent {
             code: KeyCode::Enter,
+            ..
+        })) = event::read()
+        {
+            break;
+        }
+    }
+}
+
+fn await_key_down(_key: char) {
+    loop {
+        if let Ok(event::Event::Key(KeyEvent {
+            code: KeyCode::Char(_key),
             ..
         })) = event::read()
         {
