@@ -18,7 +18,7 @@ impl Still {
 impl std::string::ToString for Still {
     fn to_string(&self) -> String {
         format!(
-            "Your Still:\n------------------------------\nSPEED: {} | VOLUME: {} | QUALITY: {}",
+            "| Your Still:\n| SPEED: {} | VOLUME: {} | QUALITY: {}",
             self.spd, self.vol, self.qlt
         )
     }

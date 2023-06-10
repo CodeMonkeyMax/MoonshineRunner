@@ -1,6 +1,7 @@
 use crate::MAX_STAT;
 use crossterm::style::Stylize;
 
+#[derive(Debug, Clone)]
 pub struct Route {
     pub name: String,
     pub distance: u32,
@@ -20,5 +21,22 @@ impl std::fmt::Display for Route {
 					self.prefereces[1],
 					self.prefereces[2],
         )
+    }
+}
+impl Route {
+    pub fn get_all_fields(self) -> Vec<String> {
+        let mut fields: Vec<String> = Vec::new();
+        fields.push(String::from(self.name));
+        fields.push("   ---------------".to_string());
+        fields.push(format!("Distance: {}", self.distance.to_string()));
+        fields.push(format!("Heat: {}", self.heat.to_string()));
+        fields.push("Preferences: ".to_string());
+        fields.push(format!("Rotgut Wiskee: {}", self.prefereces[0].to_string()));
+        fields.push(format!("OK Hooch: {}", self.prefereces[1].to_string()));
+        fields.push(format!(
+            "White Lightning: {}",
+            self.prefereces[2].to_string()
+        ));
+        return fields;
     }
 }
