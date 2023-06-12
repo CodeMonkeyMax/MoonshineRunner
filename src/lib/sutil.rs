@@ -15,7 +15,8 @@ pub fn progress_bar(real: u32, max: u32) -> String {
 }
 pub fn progress_bar_upgradeable(mut real: u32, mut max: u32, scale: u32) -> String {
     // Resize bar if values are greater than scale witdh
-    let sum = real + max;
+    // WAS real + max, but that's... Wrong, I think?
+    let sum = max;
     let mut factor = 0;
     if sum != 0 {
         // can't divide a negative unsigned int!
@@ -54,6 +55,21 @@ pub fn progress_bar_head(mut real: u32, max: u32) -> String {
     result.push(']');
     result
 }
+pub fn print_progress_bar_head(mut real: u32, max: u32) {
+    print!("[");
+    if real < 1 {
+        real = 1
+    };
+    for _i in 0..real - 1 {
+        print!("{}", "=".bold().yellow());
+    }
+    print!("{}", "#".bold().green());
+    for _i in real..max {
+        print!("{}", "-".bold());
+    }
+    print!("]");
+}
+
 pub fn die_from_u8(num: u8) -> char {
     match num {
         1 => '⚀',
@@ -89,11 +105,10 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
         4 => {
             message_components.push("| STAGE 4 of 4: BUY\n".to_string());
             message_components.push("| Time to buy something!\n".to_string());
-            message_components.push(format!(
-                "| Your Car: {}\n| Your Still: {}\n",
-                player.car.to_string(),
-                player.still.to_string()
-            ));
+            message_components.push(format!("| Your Car:\n{}\n", player.car.to_string(),));
+            message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
+            message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
+            message_components.push(format!("| Your Still: {}\n", player.still.to_string()));
         }
         _ => {
             message_components.push("|\n".to_string());
@@ -145,7 +160,8 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
         );
         let sum1 = (die1 as u32 + player.car.spd.real).to_string();
         println!(
-            "| Die 1: [{}] {} + {} -> {} Total Speed",
+            "| {}: [{}] {} + {} -> {} Total Speed",
+            "Die 1".cyan(),
             die1,
             die_from_u8(die1),
             player.car.spd.real,
@@ -153,7 +169,8 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
         );
         let sum2 = (die2 as u32 + player.car.spd.real).to_string();
         println!(
-            "| Die 2: [{}] {} + {} -> {} Total Speed",
+            "| {}: [{}] {} + {} -> {} Total Speed",
+            "Die 2".cyan(),
             die2,
             die_from_u8(die2),
             player.car.spd.real,
@@ -161,10 +178,10 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
         );
     } else {
         println!(
-            "| You can use {} to go {}, and one to drive more {}.",
+            "| You can use {} to go {}, and one to {} the cops' pit maneuvers.",
             "one roll".cyan(),
             "faster".green(),
-            "defensively".yellow()
+            "evade".yellow()
         );
         println!(
             "\n\tWhich roll do you want to apply to your {}? {}\n",
@@ -173,7 +190,8 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
         );
         let sum1 = (die1 as u32 + player.car.spd.real).to_string();
         println!(
-            "| Die 1: [{}] {} + {} -> {} Total Speed",
+            "| {}: [{}] {} + {} -> {} Total Speed",
+            "Die 1".cyan(),
             die1,
             die_from_u8(die1),
             player.car.spd.real,
@@ -181,7 +199,8 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
         );
         let sum2 = (die2 as u32 + player.car.spd.real).to_string();
         println!(
-            "| Die 2: [{}] {} + {} -> {} Total Speed",
+            "| {}: [{}] {} + {} -> {} Total Speed",
+            "Die 2".cyan(),
             die2,
             die_from_u8(die2),
             player.car.spd.real,
@@ -205,7 +224,15 @@ pub fn print_solo_bad(message: String) {
 }
 
 // Print Stages
-pub fn print_brew_stage(player: &mut crate::Player) {}
+pub fn print_brew_stage(player: &mut crate::Player) {
+    println!("|   /-----------\\");
+    println!("|  (|-----------|)");
+    println!("|  (|-----------|)");
+    println!("|  (|----/ \\----|)");
+    println!("|   \\-----------/");
+    println!("|");
+    println!("| Brewing...");
+}
 pub fn print_drive_stage(
     player: &mut crate::Player,
     distance_traveled: u32,
@@ -221,13 +248,39 @@ pub fn print_drive_stage(
         (route_name.clone()).red(),
         "Your Progress".bold().yellow()
     );
-    println!(
-        "| {} {}/{}",
-        progress_bar_head(distance_traveled, route_distance),
-        distance_traveled,
-        route_distance
-    );
+    print!("| ");
+    print_progress_bar_head(distance_traveled, route_distance);
+    print!("{}/{}\n", distance_traveled, route_distance);
     print_separator();
 }
 pub fn print_barter_stage(player: &mut crate::Player) {}
 pub fn print_buy_stage(player: &mut crate::Player) {}
+
+pub fn print_barn() {
+    println!(
+        "                             +&-
+                           _.-^-._    .--.
+                        .-'   _   '-. |__|
+                       /     |_|     \\|  |
+                      /               \\  |
+                     /|     _____     |\\ |
+                      |    |==|==|    |  |
+  |---|---|---|---|---|    |--|--|    |  |
+  |---|---|---|---|---|    |==|==|    |  |
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    );
+}
+
+pub fn print_bottles() {
+    println!(
+        "\r\t    ___    ____
+\t   |___|  (____)
+\t    | |   _)  (_
+\t  _/   \\_/~~~~~~\\
+\t /~~~~~~/        \\
+\t(______(   SHINE  )
+\t | XXX  \\        /
+\t |______ )______(
+\t(_______/________\\"
+    );
+}

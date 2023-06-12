@@ -1,4 +1,4 @@
-use super::{stat::Stat, sutil::*};
+use super::{stat::Stat};
 
 pub struct Still {
     // Later, implement Vessel, Heat Source, Boiler, Condenser, and Barrels.
@@ -12,6 +12,13 @@ impl Still {
             spd: Stat::new(0, 0),
             vol: Stat::new(0, 0),
             qlt: Stat::new(0, 0),
+        }
+    }
+    pub fn default() -> Self {
+        Still {
+            spd: Stat::new(1, 12),
+            vol: Stat::new(1, 12),
+            qlt: Stat::new(1, 12),
         }
     }
 }

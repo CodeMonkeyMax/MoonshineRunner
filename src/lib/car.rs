@@ -1,5 +1,5 @@
-use super::{stat::Stat, sutil::*};
-use crate::MONEY_MULT;
+use super::{stat::Stat};
+//use crate::MONEY_MULT;
 use crossterm::style::Stylize;
 use rand::Rng;
 
@@ -160,13 +160,7 @@ impl Car {
         car.spd.real = Self::safe_add(car.spd.real, delta);
         car.name = format!("[{}] {} {}", car.class, prefix, car_type);
         car.flavor = "TODO: More flavor text".to_string();
-        println!(
-            "10 + delta: {} | (10+delta)^2: {} | tier + 5: {}",
-            delta + 10,
-            ((delta + 10) * (delta + 10)),
-            tier + 5
-        );
-        car.price = ((10 + delta) * (10 + delta) * (tier as i32) + 5) as u32;
+        car.price = ((10 + delta) * (10 + delta)) as u32 * (tier + 4) as u32;
         car.current_durability = car.dur.real;
         car
     }
@@ -181,11 +175,13 @@ impl Car {
 }
 impl std::string::ToString for Car {
     fn to_string(&self) -> String {
-        let durmessage = match self.current_durability {
-            dur if dur == self.dur.real => self.dur.real.to_string().white(),
-            dur if dur < self.dur.real => self.dur.real.to_string().bold().red(),
-            _ => self.dur.real.to_string().bold().red(),
-        };
+        let mut durmessage = self.dur.real.to_string().white();
+        if self.current_durability < self.dur.real {
+            durmessage = format!("{} - damaged!", self.dur.real)
+                .to_string()
+                .bold()
+                .red();
+        }
         format!(
             "{}\n| SPD: {} {}\n| DUR: {} {}\n| CGO: {} {}\n| INC: {} {}\n| {}",
             &self.name.to_string().green(),

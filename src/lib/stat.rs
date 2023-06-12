@@ -1,5 +1,5 @@
 use super::sutil::*;
-use crate::{CAR_STAT_LENGTH, MAX_STAT};
+use crate::{CAR_STAT_LENGTH};
 
 pub struct Stat {
     pub real: u32,

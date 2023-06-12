@@ -1,4 +1,3 @@
-use crate::MAX_STAT;
 use crossterm::style::Stylize;
 
 #[derive(Debug, Clone)]
