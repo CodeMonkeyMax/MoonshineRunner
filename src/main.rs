@@ -30,7 +30,7 @@ fn main() {
 
     while !player_quit {
         print_solo("Welcome to Moonshine Runner!".to_string());
-				println!("{}",Card::BIG_RIG.get());
+				//println!("{}",crate::lib::card::BIG_RIG.get());
         print_bottles();
         let mut end_round = false;
         while !end_round {
