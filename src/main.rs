@@ -117,7 +117,7 @@ fn brew(mut player: &mut Player) {
 
         // Wait for a short duration
 
-        thread::sleep(Duration::from_millis(50));
+        thread::sleep(Duration::from_millis(30));
     }
     println!();
     println!();
@@ -309,6 +309,7 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
 fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
     let mut mult: f64 = 1.0;
     print_header(player, 3);
+    prompt_to_continue(Some("roll".to_string()));
     match cargo_status {
         -1 => panic!("Player has negative cargo status - should not be in 'barter()' at all!"),
         0 => {
@@ -332,10 +333,11 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
         _ => panic!("The die has died and turned into nonsense. Seek professional help."),
     };
     println!(
-        "You rolled a {}. Given this and the results of your drive, you get: ${:.2}",
+        "You rolled a {}! Given this and the condition of your cargo, you get: ${:.2}",
         die.to_string().yellow().bold(),
         (money_increment as i32).to_string().green().bold()
     );
+    prompt_to_continue(None);
     player.money += money_increment as i32;
 }
 
@@ -886,12 +888,7 @@ fn await_key_down() -> Option<char> {
     while key_down == None {
         crossterm::terminal::enable_raw_mode();
         if let Event::Key(event) = read().ok()? {
-            if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-                crossterm::terminal::disable_raw_mode();
-            }
-    
             // MATCH EVENT::KEYEVENTKIND FOR "PRESS" TYPE
-    
             key_down = match event.kind {
                 KeyEventKind::Press => Some(event.code),
                 _ => None,
@@ -900,23 +897,18 @@ fn await_key_down() -> Option<char> {
     }
 
     key = match key_down {
-        Some(KeyCode::Char(c)) => {
-            crossterm::terminal::disable_raw_mode();
-            Some(c)
-        },
-        Some(KeyCode::Tab) => {
-            crossterm::terminal::disable_raw_mode();
-            Some('\0')
-        },
+        Some(KeyCode::Char(c)) => Some(c),
+        Some(KeyCode::Tab) => Some('\0'),
         Some(KeyCode::Esc) => {
-            if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-                crossterm::terminal::disable_raw_mode();
-            }
             quit();
             None
         },
         _ => None,
     };
+
+    if crossterm::terminal::is_raw_mode_enabled().unwrap() {
+        crossterm::terminal::disable_raw_mode();
+    }
 
     key
 }
