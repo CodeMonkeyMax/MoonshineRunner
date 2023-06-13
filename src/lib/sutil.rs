@@ -73,7 +73,6 @@ pub fn print_progress_bar_head(mut real: u32, max: u32) {
     }
     print!("]");
 }
-
 pub fn die_from_u8(num: u8) -> char {
     match num {
         1 => '⚀',
@@ -87,38 +86,61 @@ pub fn die_from_u8(num: u8) -> char {
 }
 pub fn print_header(player: &mut crate::Player, round_stage: i32) {
     clear();
+    print_separator();
+    println!("| [{}] to {} | {} {:<32}","ESC".bold(),
+        "quit".red(),
+        "MOONSHINE RUNNER ".bold().blue(),
+        "♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️ ♠️");
     let mut message_components: Vec<String> = vec![];
-    message_components.push("\t\t\t\t - - ♠️ ♣️ ♥️ ♦️ MOONSHINE RUNNER ♦️ ♥️ ♣️ ♠️ - -\n".to_string());
+    //message_components.push("| [ESC] to quit | MOONSHINE RUNNER ♦️ ♥️ ♣️ ♠️\n".to_string());
     message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
     message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
     match round_stage {
         1 => {
-            message_components.push("| STAGE 1 of 4: BREW\n".to_string()); // should use '║'
+            message_components.push("| STAGE 1 of 4:".to_string()); // should use '║'
+            message_components.push("
+|\t ___ ___ _____      __  ___ _____ _   ___ ___ 
+|\t| _ ) _ \\ __\\ \\    / / / __|_   _/_\\ / __| __|
+|\t| _ \\   / _| \\ \\/\\/ /  \\__ \\ | |/ _ \\ (_ | _| 
+|\t|___/_|_\\___| \\_/\\_/   |___/ |_/_/ \\_\\___|___|\n|\n".to_string());
             message_components
                 .push("| Alright gambler, let's brew some backyard shine.\n".to_string());
         }
         2 => {
-            message_components.push("| STAGE 2 of 4: DRIVE\n".to_string());
+            message_components.push("| STAGE 2 of 4:".to_string());
+            message_components.push("
+|\t ___  ___ _____   _____   ___ _____ _   ___ ___ 
+|\t|   \\| _ \\_ _\\ \\ / / __| / __|_   _/_\\ / __| __|
+|\t| |) |   /| | \\ V /| _|  \\__ \\ | |/ _ \\ (_ | _|
+|\t|___/|_|_\\___| \\_/ |___| |___/ |_/_/ \\_\\___|___|\n|\n".to_string());
             message_components.push("| Buckle up, Gambler. It's time to drive!\n".to_string());
         }
         3 => {
-            message_components.push("| STAGE 3 of 4: BARTER\n".to_string());
+            message_components.push("| STAGE 3 of 4:".to_string());
+            message_components.push("
+|\t ___   _   ___ _____ ___ ___   ___ _____ _   ___ ___ 
+|\t| _ ) /_\\ | _ \\_   _| __| _ \\ / __|_   _/_\\ / __| __|
+|\t| _ \\/ _ \\|   / | | | _||   / \\__ \\ | |/ _ \\ (_ | _| 
+|\t|___/_/ \\_\\_|_\\ |_| |___|_|_\\ |___/ |_/_/ \\_\\___|___|\n|\n".to_string());
         }
         4 => {
-            message_components.push("| STAGE 4 of 4: BUY\n".to_string());
+            message_components.push("| STAGE 4 of 4:".to_string());
+            message_components.push("
+|\t ___ _   ___   __  ___ _____ _   ___ ___ 
+|\t| _ ) | | \\ \\ / / / __|_   _/_\\ / __| __|
+|\t| _ \\ |_| |\\ V /  \\__ \\ | |/ _ \\ (_ | _| 
+|\t|___/\\___/  |_|   |___/ |_/_/ \\_\\___|___|\n|\n".to_string());
             message_components.push("| Time to buy something!\n".to_string());
-            message_components.push(format!("| Your Car:\n{}\n", player.car.to_string(),));
+            message_components.push(format!("| Your Car:\n| {}\n", player.car.to_string(),));
             message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
             message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
             message_components.push(format!(
-                "| {}: {}\n",
+                "| {}:\n{}\n",
                 "Your Still".cyan().bold(),
                 player.still.to_string()
             ));
         }
-        _ => {
-            message_components.push("|\n".to_string());
-        }
+        _ => ()
     }
 
     message_components.push(format!("| Cash: ${}\n", player.money));
@@ -221,12 +243,12 @@ pub fn clear() {
 
 pub fn print_solo(message: String) {
     clear();
-    println!("\t\t{}\n\n", message.cyan().bold());
+    println!("\t{}\n\n", message.cyan().bold());
 }
 
 pub fn print_solo_bad(message: String) {
     clear();
-    println!("\t\t{}\n\n", message.red().bold());
+    println!("\t{}\n\n", message.red().bold());
 }
 
 // Print Stages
@@ -244,8 +266,8 @@ pub fn print_brew_stage(player: &mut crate::Player) {
     println!("|");
     println!("| Brewing...");
 }
-pub fn print_drive_stage(
-    player: &mut crate::Player,
+pub fn print_drive_info(
+    player: &crate::Player,
     distance_traveled: u32,
     route_distance: u32,
     route_name: &String,

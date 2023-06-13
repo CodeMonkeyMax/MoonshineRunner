@@ -91,8 +91,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "my-project"
-version = "0.1.0"
+name = "moonshine-runner"
+version = "0.2.0"
 dependencies = [
  "crossterm",
  "rand",
