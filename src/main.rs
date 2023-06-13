@@ -300,10 +300,11 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         // Check Roll
         if other_die as u32 + player.car.inc.real < total_heat && distance_traveled < route_distance
         {
-            print_solo_bad("You've been made! Floor it!".to_string());
-            prompt_to_continue(None);
+            println!();
+            println!("{}", "You've been made! Floor it!".red());
             player_spotted = true;
         }
+        prompt_to_continue(None);
     }
     print_solo("You made it!".to_string());
     prompt_to_continue(None);
@@ -345,7 +346,7 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
 
 fn buy(player: &mut Player) {
     print_header(player, 4);
-    println!("Visit the Police Auction? (y/n)");
+    println!("Visit the Auction House to buy new car? (y/n)");
     let mut user_entry: Option<char> = get_instant_input(&['y', 'n']);
     if user_entry == Some('y') {
         auction_house(player);
@@ -588,7 +589,7 @@ fn chase(
     SetForegroundColor(crossterm::style::Color::Red);
     // Initialize Chase & Calculate number of Rolls till Blockade
     let route_distance = route.distance;
-    let mut num_rolls_left = 1 + (route_distance - distance_traveled) / (player.car.spd.real + 4);
+    let mut num_rolls_left = 1 + (route_distance - distance_traveled) / (player.car.spd.real + 3); // was divided by speed + 4
 
     // Start Loop
     while num_rolls_left > 0 {
@@ -665,6 +666,7 @@ fn chase(
         println!();
         if distance_traveled >= route_distance {
             println!("{}! You made it just in time!", "Hoo Wee".bold().green());
+            return ((player.car.current_durability as i32), route);
         }
         // Give Results
         let total_heat: u32 = police_roll as u32 + heat;
@@ -711,37 +713,37 @@ fn emergency_roll() -> i32 {
 
 fn choose_route() -> Route {
     let routes: Vec<Route> = vec![
-        // Route 1
+        // Route 1 - Middle of Nowhere
         Route {
             name: String::from("Route 4"),
             distance: 24,
             heat: 0,
             prefereces: vec![4, 3, 2],
-            prices: vec![5, 3, 2],
+            prices: vec![3, 2, 2],
         },
-        // Route 2
+        // Route 2 - Middle of Nowhere too
         Route {
             name: String::from("Country Road 97"),
             distance: 64,
             heat: 1,
             prefereces: vec![4, 3, 2],
-            prices: vec![5, 3, 2],
+            prices: vec![4, 4, 3],
         },
-        // Route 3
+        // Route 3 - The Docks
         Route {
             name: String::from("Marina Dr."),
             distance: 32,
             heat: 3,
             prefereces: vec![4, 3, 2],
-            prices: vec![5, 3, 2],
+            prices: vec![5, 7, 4],
         },
-        // Route 4
+        // Route 4 - Some Quiet Cabins
         Route {
             name: String::from("Lakeside Ave"),
             distance: 48,
             heat: 5,
             prefereces: vec![4, 3, 2],
-            prices: vec![5, 3, 2],
+            prices: vec![2, 8, 6],
         },
         // Route 5
         Route {
@@ -749,7 +751,7 @@ fn choose_route() -> Route {
             distance: 24,
             heat: 8,
             prefereces: vec![4, 3, 2],
-            prices: vec![2, 6, 7],
+            prices: vec![3, 10, 8],
         },
         // Route 6
         Route {
@@ -757,7 +759,7 @@ fn choose_route() -> Route {
             distance: 32,
             heat: 10,
             prefereces: vec![1, 3, 2],
-            prices: vec![1, 5, 8],
+            prices: vec![1, 10, 16],
         },
     ];
     let mut drawn_routes: Vec<usize> = Vec::new();
@@ -769,6 +771,7 @@ fn choose_route() -> Route {
             drawn_routes.push(i as usize);
         }
     }
+    println!("Choose from the available routes. If a route's heat is higher than your car's Incognito Score (INC: {}), it'll be risky!\n", player.car);
     println!("\tAvailable Routes:\n");
     let mut routes_fields: Vec<Vec<String>> = Vec::new();
 
@@ -776,7 +779,7 @@ fn choose_route() -> Route {
     for route_index in &drawn_routes {
         let mut result: Vec<String> = Vec::new();
         i = i + 1;
-        result.push(format!("Route #{}:               ", i.to_string().green()));
+        result.push(format!("Route #{}:            ", i.to_string().green()));
         for field in routes.get(*route_index).unwrap().clone().get_all_fields() {
             result.push(field.to_string());
         }

@@ -230,3 +230,21 @@ impl std::string::ToString for Car {
         )
     }
 }
+
+impl Clone for Car {
+    fn clone(&self) -> Self {
+        Self {
+            name: self.name.clone(),
+            spd: self.spd.clone(),
+            dur: self.dur.clone(),
+            cgo: self.cgo.clone(),
+            inc: self.inc.clone(),
+            flavor: self.flavor.clone(),
+            current_durability: self.current_durability,
+            cargo_quality: self.cargo_quality,
+            cargo_quantity: self.cargo_quantity,
+            class: self.class,
+            price: self.price,
+        }
+    }
+}

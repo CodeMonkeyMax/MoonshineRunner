@@ -19,3 +19,10 @@ impl std::fmt::Display for Stat {
         )
     }
 }
+impl Clone for Stat {
+	fn clone(&self) -> Self {
+		Self {
+			real: self.real,
+			max: self.max,
+		}
+}

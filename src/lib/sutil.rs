@@ -1,6 +1,10 @@
-use crossterm::execute;
-use crossterm::style::Stylize;
 use crossterm::terminal::{Clear, ClearType};
+use crossterm::{
+    cursor, execute,
+    style::{self, Stylize},
+    terminal, ExecutableCommand, QueueableCommand, Result,
+};
+use std::io::{stdout, Write};
 
 pub fn progress_bar(real: u32, max: u32) -> String {
     let mut result: String = String::from("[");
