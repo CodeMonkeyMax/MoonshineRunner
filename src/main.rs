@@ -2,9 +2,9 @@ use crossterm::event::{read, Event, KeyCode};
 use crossterm::style::{SetForegroundColor, Stylize};
 //use crossterm::terminal::{Clear, ClearType};
 //use crossterm::{execute, Result};
-use lib::{car::Car, player::Player, route::Route, stat::Stat, sutil::*, card::Card};
+use lib::{car::Car, player::Player, route::Route, stat::Stat, sutil::*};
 use rand::Rng;
-use std::{write, io::Write, thread, time::Duration};
+use std::{io::Write, thread, time::Duration, write};
 
 pub mod lib;
 
@@ -17,24 +17,20 @@ pub static MONEY_MULT: f64 = 10.0;
 ////////////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
-		//crossterm::terminal::enable_raw_mode();
+    //crossterm::terminal::enable_raw_mode();
     clear();
     let mut player: Player = start();
     let mut player_quit = false;
 
-    // initialization done. Do your tesing here.
-    /*
-        print_solo("Are you ready, gambler?".to_string());
-        prompt_to_continue(None);
-    */
-
     while !player_quit {
         print_solo("Welcome to Moonshine Runner!".to_string());
-				//println!("{}",crate::lib::card::BIG_RIG.get());
         print_bottles();
+        prompt_to_continue(None);
         let mut end_round = false;
         while !end_round {
             // BREW
+            print_header(&mut player, 1);
+            print_barn();
             prompt_to_continue(Some("brew stage".to_string()));
             brew(&mut player);
 
@@ -64,7 +60,7 @@ fn main() {
             }
         }
     }
-		quit();
+    quit();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -101,8 +97,8 @@ fn default_car() -> Car {
 
 fn brew(mut player: &mut Player) {
     print_header(player, 1);
-    print_barn();
-    prompt_to_continue(Some("brew stage".to_string()));
+    //print_barn();
+    //prompt_to_continue(Some("brew stage".to_string()));
     print_header(player, 1);
     print_brew_stage(player);
     println!();
@@ -212,7 +208,7 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
                 (0, _) => println!("You barely made it outta there! Good thing you talked 'em into returning your keys!'"),
                 (_, _) => println!("Holy Hockey Sticks! You made it by the seat of your pants!"),
             }
-						player.car.current_durability = player.car.dur.real;
+            player.car.current_durability = player.car.dur.real;
             return chase_result;
         }
 
@@ -359,6 +355,11 @@ fn buy(player: &mut Player) {
 
 fn auction_house(mut player: &mut Player) {
     print_header(player, -1);
+    println!(
+        "| Your Car: {}\n| Trade-In Value: {}",
+        player.car.to_string(),
+        (player.car.price as f64 * 0.75).round() as i32
+    );
     let car1: Car = Car::generate(1);
     let car2: Car = Car::generate(2);
     let car3: Car = Car::generate(3);
@@ -375,6 +376,8 @@ fn auction_house(mut player: &mut Player) {
     match get_instant_input(&['1', '2', '3']).unwrap() {
         '1' => {
             if player.money >= car1.price as i32 {
+                player.money -=
+                    (car1.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
                 player.car = car1;
             } else {
                 println!("You don't have enough money to buy this car.");
@@ -382,6 +385,8 @@ fn auction_house(mut player: &mut Player) {
         }
         '2' => {
             if player.money >= car2.price as i32 {
+                player.money -=
+                    (car2.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
                 player.car = car2;
             } else {
                 println!("You don't have enough money to buy this car.");
@@ -389,6 +394,8 @@ fn auction_house(mut player: &mut Player) {
         }
         '3' => {
             if player.money >= car3.price as i32 {
+                player.money -=
+                    (car3.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
                 player.car = car3;
             } else {
                 println!("You don't have enough money to buy this car.");
@@ -409,9 +416,9 @@ fn shop_category(player: &mut Player, category_code: char) -> bool {
             println!("OK, let's look at some car upgrades.");
             println!(
                 "Do you want to upgrade:\nSPEED (${}), DURABILITY (${}) or CARGO (${})? (s/d/c)",
-                player.car.spd.real * 10,
-                player.car.dur.real * 10,
-                player.car.cgo.real * 10
+                (pow(1.16, player.car.spd.real as f64) * 100.0) as i32,
+                (pow(1.16, player.car.dur.real as f64) * 100.0) as i32,
+                (pow(1.16, player.car.cgo.real as f64) * 100.0) as i32
             );
             return try_buy(
                 player,
@@ -423,9 +430,9 @@ fn shop_category(player: &mut Player, category_code: char) -> bool {
             println!("OK, let's look at some still upgrades.");
             println!(
                 "Do you want to upgrade:\nVOLUME (${}), SPEED (${}) or QUALITY (${})? (v/s/q)",
-                player.still.vol.real * 10,
-                player.still.spd.real * 10,
-                player.still.qlt.real * 10
+                (pow(1.16, player.still.vol.real as f64) * 100.0) as i32,
+                (pow(1.16, player.still.spd.real as f64) * 100.0) as i32,
+                (pow(1.16, player.still.qlt.real as f64) * 100.0) as i32
             );
             return try_buy(
                 player,
@@ -454,7 +461,7 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                         println!("Not enough change, chump!");
                     }
                 } else {
-                    println!("You're already maxed out, speed racer!");
+                    println!("Woah there! You're already maxed out, speed racer!");
                 }
                 return false;
             }
@@ -785,6 +792,14 @@ fn choose_route() -> Route {
 // TIER 4  ////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+fn pow(base: f64, exp: f64) -> f64 {
+    let mut result = 1.0;
+    for _ in 0..exp as i32 {
+        result *= base;
+    }
+    result
+}
+
 fn calculate_cargo_quantity(still_capacity: u32, car_capacity: u32) -> u32 {
     if car_capacity > still_capacity {
         still_capacity
@@ -814,21 +829,21 @@ fn get_instant_input(chars: &[char]) -> Option<char> {
 }
 
 fn wait_for_enter() {
-	let mut player_pressed_enter = false;
-	while !player_pressed_enter {
-		if let Ok(Event::Key(key_event)) = read() {
-        match key_event.code {
-            KeyCode::Enter => player_pressed_enter = true,
-						KeyCode::Esc => {
-							if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-									crossterm::terminal::disable_raw_mode();
-							}
-							quit();
-						},
-            _ => continue,
+    let mut player_pressed_enter = false;
+    while !player_pressed_enter {
+        if let Ok(Event::Key(key_event)) = read() {
+            match key_event.code {
+                KeyCode::Enter => player_pressed_enter = true,
+                KeyCode::Esc => {
+                    if crossterm::terminal::is_raw_mode_enabled().unwrap() {
+                        crossterm::terminal::disable_raw_mode();
+                    }
+                    quit();
+                }
+                _ => continue,
+            }
         }
-    } 
-	}
+    }
 }
 
 fn await_key_down() -> Option<char> {
@@ -836,12 +851,12 @@ fn await_key_down() -> Option<char> {
         match key_event.code {
             KeyCode::Char(c) => Some(c),
             KeyCode::Esc => {
-							if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-									crossterm::terminal::disable_raw_mode();
-							}
-							quit();
-							None
-						},
+                if crossterm::terminal::is_raw_mode_enabled().unwrap() {
+                    crossterm::terminal::disable_raw_mode();
+                }
+                quit();
+                None
+            }
             _ => None,
         }
     } else {
@@ -876,9 +891,9 @@ fn prompt_to_continue(string: Option<String>) {
 }
 
 fn quit() {
-	if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-		crossterm::terminal::disable_raw_mode();
-	}
-	println!("Thanks for playing!");
-	std::process::exit(0);
+    if crossterm::terminal::is_raw_mode_enabled().unwrap() {
+        crossterm::terminal::disable_raw_mode();
+    }
+    println!("Thanks for playing!");
+    std::process::exit(0);
 }

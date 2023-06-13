@@ -92,8 +92,6 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
             message_components.push("| STAGE 1 of 4: BREW\n".to_string()); // should use '║'
             message_components
                 .push("| Alright gambler, let's brew some backyard shine.\n".to_string());
-            message_components.push(player.still.to_string());
-            message_components.push("\n".to_string());
         }
         2 => {
             message_components.push("| STAGE 2 of 4: DRIVE\n".to_string());
@@ -108,7 +106,11 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
             message_components.push(format!("| Your Car:\n{}\n", player.car.to_string(),));
             message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
             message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
-            message_components.push(format!("| Your Still: {}\n", player.still.to_string()));
+            message_components.push(format!(
+                "| {}: {}\n",
+                "Your Still".cyan().bold(),
+                player.still.to_string()
+            ));
         }
         _ => {
             message_components.push("|\n".to_string());
@@ -225,6 +227,11 @@ pub fn print_solo_bad(message: String) {
 
 // Print Stages
 pub fn print_brew_stage(player: &mut crate::Player) {
+    println!(
+        "| {}:\n{}\n|",
+        "Your Still".cyan().bold(),
+        player.still.to_string()
+    );
     println!("|   /-----------\\");
     println!("|  (|-----------|)");
     println!("|  (|-----------|)");

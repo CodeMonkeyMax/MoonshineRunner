@@ -1,4 +1,4 @@
-use super::{stat::Stat};
+use super::stat::Stat;
 
 pub struct Still {
     // Later, implement Vessel, Heat Source, Boiler, Condenser, and Barrels.
@@ -25,7 +25,7 @@ impl Still {
 impl std::string::ToString for Still {
     fn to_string(&self) -> String {
         format!(
-            "| Your Still:\n| SPEED: {} | VOLUME: {} | QUALITY: {}",
+            "| SPEED: {} | VOLUME: {} | QUALITY: {}",
             self.spd, self.vol, self.qlt
         )
     }
