@@ -6,6 +6,7 @@ pub struct Still {
     pub vol: Stat,
     pub qlt: Stat, // is there a better abbreviation for "quality?"
 }
+
 impl Still {
     pub fn new() -> Self {
         Still {
@@ -22,11 +23,22 @@ impl Still {
         }
     }
 }
+
 impl std::string::ToString for Still {
     fn to_string(&self) -> String {
         format!(
             "| SPEED: {} | VOLUME: {} | QUALITY: {}",
             self.spd, self.vol, self.qlt
         )
+    }
+}
+
+impl Clone for Still {
+    fn clone(&self) -> Self {
+        Self {
+            spd: self.spd.clone(),
+            vol: self.vol.clone(),
+            qlt: self.qlt.clone(),
+        }
     }
 }

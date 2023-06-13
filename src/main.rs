@@ -1,5 +1,6 @@
 use crossterm::event::{read, Event, KeyCode};
 use crossterm::style::{SetForegroundColor, Stylize};
+use lib::still::Still;
 //use crossterm::terminal::{Clear, ClearType};
 //use crossterm::{execute, Result};
 use lib::{car::Car, player::Player, route::Route, stat::Stat, sutil::*};
@@ -12,6 +13,8 @@ pub static MAX_STAT: u32 = 24;
 pub static CAR_STAT_LENGTH: u8 = 12;
 pub static MONEY_MULT: f64 = 10.0;
 
+static mut PLAYER: Player = Player::new();
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // MAIN ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -19,7 +22,6 @@ pub static MONEY_MULT: f64 = 10.0;
 fn main() {
     //crossterm::terminal::enable_raw_mode();
     clear();
-    let mut player: Player = start();
     let mut player_quit = false;
 
     while !player_quit {
@@ -29,22 +31,22 @@ fn main() {
         let mut end_round = false;
         while !end_round {
             // BREW
-            print_header(&mut player, 1);
+            print_header(1);
             print_barn();
             prompt_to_continue(Some("brew stage".to_string()));
-            brew(&mut player);
+            brew();
 
             // DRIVE
             prompt_to_continue(Some("drive stage".to_string()));
-            let (cargo_status, route) = drive(&mut player);
+            let (cargo_status, route) = drive();
 
             //BARTER
             if cargo_status > 0 {
                 clear();
                 prompt_to_continue(Some("barter stage".to_string()));
-                barter(&mut player, cargo_status, route);
+                barter(cargo_status, route);
             } else if cargo_status < 0 {
-                player.car = default_car();
+                PLAYER.set_car();
                 // player is boned
                 break;
             }
@@ -67,40 +69,12 @@ fn main() {
 // TIER 2  ////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-fn start() -> Player {
-    let mut player = Player::new();
-    player.money = 1000;
-    player.car.name = "[F] Rusty Hatchback".to_string();
-    player.car.spd = Stat::new(2, 5);
-    player.car.dur = Stat::new(2, 5);
-    player.car.cgo = Stat::new(8, 15);
-    player.car.inc = Stat::new(2, 5);
-    player.car.flavor = "Have you had your tetanus shots?".to_string();
-    player
-}
-
-fn default_car() -> Car {
-    Car {
-        name: "[F] Rusty Hatchback".to_string(),
-        spd: Stat::new(2, 5),
-        dur: Stat::new(2, 5),
-        cgo: Stat::new(8, 15),
-        inc: Stat::new(2, 5),
-        flavor: "Have you had your tetanus shots?".to_string(),
-        class: 'F',
-        cargo_quality: 0,
-        cargo_quantity: 0,
-        price: 0,
-        current_durability: 0,
-    }
-}
-
-fn brew(mut player: &mut Player) {
-    print_header(player, 1);
+fn brew() {
+    print_header(1);
     //print_barn();
     //prompt_to_continue(Some("brew stage".to_string()));
-    print_header(player, 1);
-    print_brew_stage(player);
+    print_header(1);
+    print_brew_stage();
     println!();
     for i in 0..36 {
         print!("\r[");
@@ -122,7 +96,8 @@ fn brew(mut player: &mut Player) {
     println!();
     println!();
     //take into account player's still size and quality
-    let quality_odds_map = match player.still.qlt.real {
+    let still: Still = PLAYER.get_still();
+    let quality_odds_map = match still.qlt.real {
         12 => (5, 10, 85),
         11 => (10, 15, 75),
         10 => (15, 20, 65),
@@ -170,7 +145,7 @@ fn brew(mut player: &mut Player) {
                 output,
                 "White Lightning".green()
             );
-            player.car.cargo_quality = 1;
+            player.car.cargo_quality = 3;
         }
         _ => panic!("{}", "BAD NUMBER!".red()),
     }
@@ -580,21 +555,17 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
     }
 }
 
-fn chase(
-    mut player: &mut Player,
-    route: Route,
-    mut distance_traveled: u32,
-    heat: u32,
-) -> (i32, Route) {
+fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
     SetForegroundColor(crossterm::style::Color::Red);
     // Initialize Chase & Calculate number of Rolls till Blockade
     let route_distance = route.distance;
-    let mut num_rolls_left = 1 + (route_distance - distance_traveled) / (player.car.spd.real + 3); // was divided by speed + 4
+    let mut num_rolls_left =
+        1 + (route_distance - distance_traveled) / (Player::get_car.spd.real + 3); // was divided by speed + 4
 
     // Start Loop
     while num_rolls_left > 0 {
         // Header n Stuff
-        print_header(player, 2);
+        print_header(2);
         println!(
             "| {} The cops are forming a {} in {} rolls!",
             "STATUS: ".cyan(),
@@ -602,7 +573,7 @@ fn chase(
             num_rolls_left
         );
         print_separator();
-        print_drive_stage(player, distance_traveled, route_distance, &route.name);
+        print_drive_stage(distance_traveled, route_distance, &route.name);
 
         // Roll Dice & Prompt for player input
         let die1: u8 = get_random_number(6) as u8;

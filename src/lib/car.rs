@@ -40,6 +40,24 @@ impl Car {
             current_durability: 0,
         }
     }
+    pub fn reset(&mut self) {
+        self = &mut Self::default_car();
+    }
+    pub fn default_car() -> Car {
+        Car {
+            name: "[F] Rusty Hatchback".to_string(),
+            spd: Stat::new(2, 5),
+            dur: Stat::new(2, 5),
+            cgo: Stat::new(8, 15),
+            inc: Stat::new(2, 5),
+            flavor: "Have you had your tetanus shots?".to_string(),
+            class: 'F',
+            cargo_quality: 0,
+            cargo_quantity: 0,
+            price: 0,
+            current_durability: 0,
+        }
+    }
     pub fn generate(tier: u8) -> Car {
         let mut rng = rand::thread_rng();
         let car_class = make_class(tier);

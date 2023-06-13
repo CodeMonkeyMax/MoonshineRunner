@@ -4,3 +4,4 @@ pub mod route;
 pub mod stat;
 pub mod still;
 pub mod sutil;
+pub mod wallet;
