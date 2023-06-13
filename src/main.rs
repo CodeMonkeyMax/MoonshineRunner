@@ -46,16 +46,19 @@ fn main() {
                 prompt_to_continue(Some("barter stage".to_string()));
                 barter(cargo_status, route);
             } else if cargo_status < 0 {
-                PLAYER.set_car();
+                unsafe {
+                    PLAYER.car.reset();
+                }
+
                 // player is boned
                 break;
             }
 
             // BUY
             prompt_to_continue(Some("buy stage".to_string()));
-            buy(&mut player);
+            buy();
 
-            if player.money >= 10000 {
+            if PLAYER.get_money() >= 100000 {
                 println!("You won!");
                 end_round = true;
                 player_quit = true;
@@ -95,65 +98,68 @@ fn brew() {
     }
     println!();
     println!();
-    //take into account player's still size and quality
-    let still: Still = PLAYER.get_still();
-    let quality_odds_map = match still.qlt.real {
-        12 => (5, 10, 85),
-        11 => (10, 15, 75),
-        10 => (15, 20, 65),
-        9 => (20, 25, 55),
-        8 => (25, 30, 45),
-        7 => (30, 35, 35),
-        6 => (35, 40, 25),
-        5 => (40, 45, 15),
-        4 => (45, 45, 10),
-        3 => (50, 40, 10),
-        2 => (60, 35, 5),
-        1 => (70, 25, 5),
-        0 => (80, 15, 5),
-        _ => panic!("Invalid stat value!"),
-    };
-    let roll = get_random_number(100);
-    let quality = match roll {
-        v if v < quality_odds_map.0 => 1,
-        v if v < quality_odds_map.0 + quality_odds_map.1 => 2,
-        _ => 3,
-    };
-    // Set Quantity
-    let output = (player.still.spd.real * player.still.vol.real) * 2;
-    player.car.cargo_quantity = calculate_cargo_quantity(output, player.car.cgo.real);
-    match quality {
-        1 => {
-            println!(
-                "Yeesh! You brewed {} cases of '{}' Good luck getting rid of this!",
-                output,
-                "Rotgut Wiskee".red()
-            );
-            player.car.cargo_quality = 1;
-        }
-        2 => {
-            println!(
-                "You brewed {} cases of '{}.' This will be plenty easy to move!",
-                output,
-                "OK Hooch".yellow()
-            );
-            player.car.cargo_quality = 2;
-        }
-        3 => {
-            println!(
+    unsafe {
+        //take into account player's still size and quality
+        let still: Still = PLAYER.get_still();
+        let quality_odds_map = match still.qlt.real {
+            12 => (5, 10, 85),
+            11 => (10, 15, 75),
+            10 => (15, 20, 65),
+            9 => (20, 25, 55),
+            8 => (25, 30, 45),
+            7 => (30, 35, 35),
+            6 => (35, 40, 25),
+            5 => (40, 45, 15),
+            4 => (45, 45, 10),
+            3 => (50, 40, 10),
+            2 => (60, 35, 5),
+            1 => (70, 25, 5),
+            0 => (80, 15, 5),
+            _ => panic!("Invalid stat value!"),
+        };
+        let roll = get_random_number(100);
+        let quality = match roll {
+            v if v < quality_odds_map.0 => 1,
+            v if v < quality_odds_map.0 + quality_odds_map.1 => 2,
+            _ => 3,
+        };
+        // Set Quantity
+        let output = (PLAYER.get_still().spd.real * PLAYER.still.vol.real) * 2;
+        PLAYER.car.cargo_quantity = calculate_cargo_quantity(output, PLAYER.car.cgo.real);
+        match quality {
+            1 => {
+                println!(
+                    "Yeesh! You brewed {} cases of '{}' Good luck getting rid of this!",
+                    output,
+                    "Rotgut Wiskee".red()
+                );
+                PLAYER.car.cargo_quality = 1;
+            }
+            2 => {
+                println!(
+                    "You brewed {} cases of '{}.' This will be plenty easy to move!",
+                    output,
+                    "OK Hooch".yellow()
+                );
+                PLAYER.car.cargo_quality = 2;
+            }
+            3 => {
+                println!(
                 "Hoo wee! This here's {} cases of '{}!' Worth top dollar, to the right buyer...",
                 output,
                 "White Lightning".green()
             );
-            player.car.cargo_quality = 3;
+                PLAYER.car.cargo_quality = 3;
+            }
+            _ => panic!("{}", "BAD NUMBER!".red()),
         }
-        _ => panic!("{}", "BAD NUMBER!".red()),
     }
 }
 
-fn drive(mut player: &mut Player) -> (i32, Route) {
-    print_header(player, 2);
-    let booze = match player.car.cargo_quality {
+fn drive() -> (i32, Route) {
+    print_header(2);
+    let car = PLAYER.get_car();
+    let booze = match car.cargo_quality {
         1 => "Rotgut Wiskee".red(),
         2 => "OK Hooch".yellow(),
         3 => "White Lightning".green(),
@@ -174,10 +180,12 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
     let player_still_alive = true;
     let mut player_spotted = false;
 
-    // Set Player Car Durability
-    player.car.current_durability = player.car.dur.real;
+    unsafe {
+        // Set Player Car Durability
+        PLAYER.car.current_durability = PLAYER.car.dur.real;
+    }
 
-    print_header(player, 2);
+    print_header(2);
     println!("| Now you're in the {} stage.", "DRIVE".green());
     println!("| {}", "Start your engine, gambler!".red());
     prompt_to_continue(None);
@@ -187,14 +195,14 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
             distance_traveled = route_distance;
         }
         // Print Header
-        print_header(player, 2);
+        print_header(2);
         // Check if the player has been spotted
         if player_spotted {
             if distance_traveled == route_distance {
                 println!("Ha! You squeaked right by 'em!");
-                return ((player.car.dur.real as i32 + 1), route);
+                return ((PLAYER.get_car().dur.real as i32 + 1), route);
             }
-            let chase_result = chase(&mut player, route, distance_traveled, heat);
+            let chase_result = chase(route, distance_traveled, heat);
             match chase_result {
                 (-1, _) => println!("Your whiskey and your ride are history, Gambler!"),
                 (0, _) => print_solo_bad(
@@ -202,19 +210,19 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
                 ),
                 (_, _) => println!("Holy Hockey Sticks! You made it by the seat of your pants!"),
             }
-            player.car.current_durability = player.car.dur.real;
+            PLAYER.get_car().current_durability = PLAYER.get_car().dur.real;
             return chase_result;
         }
 
         // Part 1 - Start of Round Stage
-        print_drive_stage(player, distance_traveled, route_distance, &route.name);
+        print_drive_stage(distance_traveled, route_distance, &route.name);
         //prompt_to_continue(Some("roll".to_string()));
         let die1: u8 = get_random_number(6) as u8;
         let die2: u8 = get_random_number(6) as u8;
         let police_roll: u8 = get_random_number(6) as u8;
 
         // Part 2 - Roll Dice
-        print_header(player, 2);
+        print_header(2);
         if distance_traveled >= 1 {
             println!(
                 "| {} Good work, Gambler. They haven't spotted you yet!",
@@ -222,22 +230,22 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
             );
             print_separator();
         }
-        print_drive_stage(player, distance_traveled, route_distance, &route.name);
+        print_drive_stage(distance_traveled, route_distance, &route.name);
 
         print_roll(die1, die2);
         // Have Player Choose Die
-        print_roll_prompt(player, true, die1, die2);
+        print_roll_prompt(true, die1, die2);
         // Process Consequences of Die Choice
         let other_die: u8;
         let die_choice = get_instant_input(&['1', '2']).unwrap().to_digit(10);
         match die_choice.unwrap() {
             1 => {
-                distance_traveled += die1 as u32 + player.car.spd.real;
+                distance_traveled += die1 as u32 + PLAYER.get_car().spd.real;
                 other_die = die2;
                 1
             }
             2 => {
-                distance_traveled += die2 as u32 + player.car.spd.real;
+                distance_traveled += die2 as u32 + PLAYER.get_car().spd.real;
                 other_die = die1;
                 2
             }
@@ -247,7 +255,7 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         };
 
         // Part 3 - Consequences, John.
-        print_header(player, 2);
+        print_header(2);
         if distance_traveled >= 1 && !player_spotted {
             println!(
                 "| {} Good work, Gambler. They haven't spotted you yet!",
@@ -260,8 +268,8 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
             "| Your stealth roll: \t[{}] {} + {} -> {} total incognito score",
             die_from_u8(other_die),
             other_die,
-            player.car.inc.real,
-            other_die as u32 + player.car.inc.real
+            PLAYER.get_car().inc.real,
+            other_die as u32 + PLAYER.get_car().inc.real
         );
         println!(
             "| Cops' Roll:\t\t\t[{}] {} + {} Route Heat -> {} Total Heat",
@@ -273,7 +281,8 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         // Calculate Heat
         let total_heat: u32 = police_roll as u32 + heat;
         // Check Roll
-        if other_die as u32 + player.car.inc.real < total_heat && distance_traveled < route_distance
+        if other_die as u32 + PLAYER.get_car().inc.real < total_heat
+            && distance_traveled < route_distance
         {
             println!();
             println!("{}", "You've been made! Floor it!".red());
@@ -283,24 +292,24 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
     }
     print_solo("You made it!".to_string());
     prompt_to_continue(None);
-    return ((player.car.dur.real as i32 + 1), route);
+    return ((PLAYER.get_car().dur.real as i32 + 1), route);
 }
 
-fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
+fn barter(cargo_status: i32, route: Route) {
     let mut mult: f64 = 1.0;
-    print_header(player, 3);
+    print_header(3);
     match cargo_status {
         -1 => panic!("Player has negative cargo status - should not be in 'barter()' at all!"),
         0 => {
             mult = 0.5;
         }
         _ => {
-            mult = (cargo_status as f64 / (2.0 * player.car.dur.real as f64)) + 0.5;
+            mult = (cargo_status as f64 / (2.0 * PLAYER.get_car().dur.real as f64)) + 0.5;
         }
     }
     println!("DEBUG: Mult = {}", mult);
-    mult = mult * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT;
-    mult = mult * route.prices[player.car.cargo_quality as usize] as f64;
+    mult = mult * cargo_status as f64 * PLAYER.get_car().cargo_quality as f64 * MONEY_MULT;
+    mult = mult * route.prices[PLAYER.get_car().cargo_quality as usize] as f64;
     let die = get_random_number(6);
     let money_increment = match die {
         1 => mult * 0.65,
@@ -316,24 +325,24 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
         die.to_string().yellow().bold(),
         (money_increment as i32).to_string().green().bold()
     );
-    player.money += money_increment as i32;
+    player.get_money() += money_increment as i32;
 }
 
-fn buy(player: &mut Player) {
-    print_header(player, 4);
+fn buy() {
+    print_header(4);
     println!("Visit the Auction House to buy new car? (y/n)");
     let mut user_entry: Option<char> = get_instant_input(&['y', 'n']);
     if user_entry == Some('y') {
-        auction_house(player);
+        auction_house();
     }
-    print_header(player, 4);
+    print_header(4);
     println!("Do you want to buy any upgrades? (y/n)");
     let mut user_entry: Option<char> = get_instant_input(&['y', 'n']);
     while user_entry != Some('n') {
-        print_header(player, 4);
+        print_header(4);
         println!("Do you want to buy upgrades for your CAR or for your STILL? (c/s)");
-        if shop_category(player, get_instant_input(&['c', 's']).unwrap()) {
-            print_header(player, 4);
+        if shop_category(get_instant_input(&['c', 's']).unwrap()) {
+            print_header(4);
             println!("Congratulations on your snazzy new upgrade.\n");
         }
         println!("{}", "Shop Again? (y/n)\n".cyan().bold());
@@ -346,12 +355,12 @@ fn buy(player: &mut Player) {
 // TIER 3  ////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-fn auction_house(mut player: &mut Player) {
-    print_header(player, -1);
+fn auction_house() {
+    print_header(-1);
     println!(
         "| Your Car: {}\n| Trade-In Value: {}",
-        player.car.to_string(),
-        (player.car.price as f64 * 0.75).round() as i32
+        PLAYER.get_car().to_string(),
+        (PLAYER.get_car().price as f64 * 0.75).round() as i32
     );
     let car1: Car = Car::generate(1);
     let car2: Car = Car::generate(2);
@@ -365,73 +374,67 @@ fn auction_house(mut player: &mut Player) {
         car3.to_string(),
         car3.price.to_string(),
     );
-    println!("Select a car you'd like to buy (1/2/3)");
-    match get_instant_input(&['1', '2', '3']).unwrap() {
-        '1' => {
-            if player.money >= car1.price as i32 {
-                player.money -=
-                    (car1.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
-                player.car = car1;
-            } else {
-                println!("You don't have enough money to buy this car.");
+    unsafe {
+        println!("Select a car you'd like to buy (1/2/3)");
+        match get_instant_input(&['1', '2', '3']).unwrap() {
+            '1' => {
+                if PLAYER.get_money() >= car1.price as i32 {
+                    PLAYER.get_money() -=
+                        (car1.price as i32 - (PLAYER.car.price as f64 * 0.75).round() as i32);
+                    PLAYER.car = car1;
+                } else {
+                    println!("You don't have enough money to buy this car.");
+                }
             }
-        }
-        '2' => {
-            if player.money >= car2.price as i32 {
-                player.money -=
-                    (car2.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
-                player.car = car2;
-            } else {
-                println!("You don't have enough money to buy this car.");
+            '2' => {
+                if PLAYER.get_money() >= car2.price as i32 {
+                    PLAYER.get_money() -=
+                        (car2.price as i32 - (PLAYER.car.price as f64 * 0.75).round() as i32);
+                    PLAYER.car = car2;
+                } else {
+                    println!("You don't have enough money to buy this car.");
+                }
             }
-        }
-        '3' => {
-            if player.money >= car3.price as i32 {
-                player.money -=
-                    (car3.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
-                player.car = car3;
-            } else {
-                println!("You don't have enough money to buy this car.");
+            '3' => {
+                if PLAYER.get_money() >= car3.price as i32 {
+                    PLAYER.get_money() -=
+                        (car3.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
+                    player.car = car3;
+                } else {
+                    println!("You don't have enough money to buy this car.");
+                }
             }
-        }
-        _ => {
-            panic!("Invalid Input")
+            _ => {
+                panic!("Invalid Input")
+            }
         }
     }
 }
 
-fn shop_category(player: &mut Player, category_code: char) -> bool {
-    print_header(player, 4);
-    let print_msg: String = format!("Your Money: {}", player.money);
+fn shop_category(category_code: char) -> bool {
+    print_header(4);
+    let print_msg: String = format!("Your Money: {}", PLAYER.get_money());
     println!("{}", print_msg.green());
     match category_code {
         'c' => {
             println!("OK, let's look at some car upgrades.");
             println!(
                 "Do you want to upgrade:\nSPEED (${}), DURABILITY (${}) or CARGO (${})? (s/d/c)",
-                (pow(1.16, player.car.spd.real as f64) * 100.0) as i32,
-                (pow(1.16, player.car.dur.real as f64) * 100.0) as i32,
-                (pow(1.16, player.car.cgo.real as f64) * 100.0) as i32
+                (pow(1.16, PLAYER.get_car().spd.real as f64) * 100.0) as i32,
+                (pow(1.16, PLAYER.get_car().dur.real as f64) * 100.0) as i32,
+                (pow(1.16, PLAYER.get_car().cgo.real as f64) * 100.0) as i32
             );
-            return try_buy(
-                player,
-                category_code,
-                get_instant_input(&['s', 'd', 'c']).unwrap(),
-            );
+            return try_buy(category_code, get_instant_input(&['s', 'd', 'c']).unwrap());
         }
         's' => {
             println!("OK, let's look at some still upgrades.");
             println!(
                 "Do you want to upgrade:\nVOLUME (${}), SPEED (${}) or QUALITY (${})? (v/s/q)",
-                (pow(1.16, player.still.vol.real as f64) * 100.0) as i32,
-                (pow(1.16, player.still.spd.real as f64) * 100.0) as i32,
-                (pow(1.16, player.still.qlt.real as f64) * 100.0) as i32
+                (pow(1.16, PLAYER.get_still().vol.real as f64) * 100.0) as i32,
+                (pow(1.16, PLAYER.get_still().spd.real as f64) * 100.0) as i32,
+                (pow(1.16, PLAYER.get_still().qlt.real as f64) * 100.0) as i32
             );
-            return try_buy(
-                player,
-                category_code,
-                get_instant_input(&['v', 's', 'q']).unwrap(),
-            );
+            return try_buy(category_code, get_instant_input(&['v', 's', 'q']).unwrap());
         }
         _ => {
             return false;
@@ -439,15 +442,15 @@ fn shop_category(player: &mut Player, category_code: char) -> bool {
     }
 }
 
-fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> bool {
+fn try_buy(category_code: char, item_code: char) -> bool {
     match category_code {
         // Car Upgrades
         'c' => match item_code {
             's' => {
-                if player.car.spd.real < player.car.spd.max {
-                    let cost = (player.car.spd.real * 10) as i32;
+                if PLAYER.get_car().spd.real < PLAYER.get_car().spd.max {
+                    let cost = (PLAYER.get_car().spd.real * 10) as i32;
                     if player.money >= cost {
-                        player.car.spd.real += 1;
+                        PLAYER.car.spd.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
@@ -459,10 +462,10 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                 return false;
             }
             'd' => {
-                if player.car.dur.real < player.car.dur.max {
-                    let cost = (player.car.dur.real * 10) as i32;
+                if PLAYER.get_car().dur.real < PLAYER.get_car().dur.max {
+                    let cost = (PLAYER.get_car().dur.real * 10) as i32;
                     if player.money >= cost {
-                        player.car.dur.real += 1;
+                        PLAYER.car.dur.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
@@ -474,8 +477,8 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                 return false;
             }
             'c' => {
-                if player.car.cgo.real < player.car.cgo.max {
-                    let cost = (player.car.cgo.real * 10) as i32;
+                if PLAYER.get_car().cgo.real < PLAYER.get_car().cgo.max {
+                    let cost = (PLAYER.get_car().cgo.real * 10) as i32;
                     if player.money >= cost {
                         player.car.cgo.real += 1;
                         player.money -= cost;
@@ -498,8 +501,8 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
         // Still Upgrades
         's' => match item_code {
             's' => {
-                if player.still.spd.real < player.still.spd.max {
-                    let cost = (player.still.spd.real * 10) as i32;
+                if PLAYER.get_still().spd.real < PLAYER.get_still().spd.max {
+                    let cost = (PLAYER.get_still().spd.real * 10) as i32;
                     if player.money >= cost {
                         player.still.spd.real += 1;
                         player.money -= cost;
@@ -513,8 +516,8 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                 return false;
             }
             'v' => {
-                if player.still.vol.real < player.still.vol.max {
-                    let cost = (player.still.vol.real * 10) as i32;
+                if PLAYER.get_still().vol.real < PLAYER.get_still().vol.max {
+                    let cost = (PLAYER.get_still().vol.real * 10) as i32;
                     if player.money >= cost {
                         player.still.vol.real += 1;
                         player.money -= cost;
@@ -528,8 +531,8 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                 return false;
             }
             'q' => {
-                if player.still.qlt.real < player.still.qlt.max {
-                    let cost = (player.still.qlt.real * 10) as i32;
+                if PLAYER.get_still().qlt.real < PLAYER.get_still().qlt.max {
+                    let cost = (PLAYER.get_still().qlt.real * 10) as i32;
                     if player.money >= cost {
                         player.still.qlt.real += 1;
                         player.money -= cost;
@@ -560,7 +563,7 @@ fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
     // Initialize Chase & Calculate number of Rolls till Blockade
     let route_distance = route.distance;
     let mut num_rolls_left =
-        1 + (route_distance - distance_traveled) / (Player::get_car.spd.real + 3); // was divided by speed + 4
+        1 + (route_distance - distance_traveled) / (Player::get_car().spd.real + 3); // was divided by speed + 4
 
     // Start Loop
     while num_rolls_left > 0 {
@@ -580,18 +583,18 @@ fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
         let die2: u8 = get_random_number(6) as u8;
         let police_roll: u8 = get_random_number(6) as u8;
         print_roll(die1, die2);
-        print_roll_prompt(player, false, die1, die2);
+        print_roll_prompt(false, die1, die2);
         // Get & Process the player input
         let other_die: u8;
         let die_choice = get_instant_input(&['1', '2']).unwrap().to_digit(10);
         match die_choice.unwrap() {
             1 => {
-                distance_traveled += die1 as u32 + player.car.spd.real;
+                distance_traveled += die1 as u32 + PLAYER.get_car().spd.real;
                 other_die = die2;
                 1
             }
             2 => {
-                distance_traveled += die2 as u32 + player.car.spd.real;
+                distance_traveled += die2 as u32 + PLAYER.get_car().spd.real;
                 other_die = die1;
                 2
             }
@@ -603,7 +606,7 @@ fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
         // Consequences...
         // Same Header Order
         // Feel like I shouldn't print car here, maybe. Seems distracting.
-        print_header(player, 2);
+        print_header(2);
         println!(
             "| {} The cops are forming a {} in {} rolls!",
             "STATUS: ".cyan(),
@@ -611,7 +614,7 @@ fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
             num_rolls_left
         );
         print_separator();
-        print_drive_stage(player, distance_traveled, route_distance, &route.name);
+        print_drive_stage(distance_traveled, route_distance, &route.name);
         print_roll(die1, die2); // Should CROSS OUT die that's been used
                                 // Give Info
         print_separator();
@@ -629,25 +632,27 @@ fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
             "YOUR DEFENSE ROLL".cyan().bold(),
             die_from_u8(other_die),
             other_die,
-            player.car.inc.real,
-            ((other_die as u32 + player.car.inc.real).to_string())
+            PLAYER.get_car().inc.real,
+            ((other_die as u32 + PLAYER.get_car().inc.real).to_string())
                 .green()
                 .bold()
         );
         println!();
         if distance_traveled >= route_distance {
             println!("{}! You made it just in time!", "Hoo Wee".bold().green());
-            return ((player.car.current_durability as i32), route);
+            return ((PLAYER.get_car().current_durability as i32), route);
         }
         // Give Results
         let total_heat: u32 = police_roll as u32 + heat;
-        if other_die as u32 + player.car.inc.real < total_heat {
+        if other_die as u32 + PLAYER.get_car().inc.real < total_heat {
             println!(
                 "| Cops' Attack exceeds your Defense:\n| {}",
                 "You've been rammed!".red()
             );
-            player.car.current_durability -= 1;
-            if player.car.current_durability == 0 {
+            unsafe {
+                PLAYER.car.current_durability -= 1;
+            }
+            if PLAYER.get_car().current_durability == 0 {
                 return (0, route);
             }
         } else if distance_traveled < route_distance {
@@ -659,13 +664,13 @@ fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
                 return (-1, route);
             } else {
                 println!("{}", "YOU MADE IT!!".bold().green());
-                return ((player.car.current_durability as i32), route);
+                return ((PLAYER.get_car().current_durability as i32), route);
             }
         }
         prompt_to_continue(None);
         clear();
     }
-    ((player.car.current_durability as i32), route)
+    ((PLAYER.get_car().current_durability as i32), route)
 }
 
 fn emergency_roll() -> i32 {
@@ -742,7 +747,7 @@ fn choose_route() -> Route {
             drawn_routes.push(i as usize);
         }
     }
-    println!("Choose from the available routes. If a route's heat is higher than your car's Incognito Score (INC: {}), it'll be risky!\n", player.car);
+    println!("Choose from the available routes. If a route's heat is higher than your car's Incognito Score (INC: {}), it'll be risky!\n", PLAYER.get_car().inc.real);
     println!("\tAvailable Routes:\n");
     let mut routes_fields: Vec<Vec<String>> = Vec::new();
 

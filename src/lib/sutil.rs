@@ -85,7 +85,7 @@ pub fn die_from_u8(num: u8) -> char {
         _ => panic!("BAD NUMBER!"),
     }
 }
-pub fn print_header(player: &mut crate::Player, round_stage: i32) {
+pub fn print_header(round_stage: i32) {
     clear();
     let mut message_components: Vec<String> = vec![];
     message_components.push("\t\t\t\t - - ♠️ ♣️ ♥️ ♦️ MOONSHINE RUNNER ♦️ ♥️ ♣️ ♠️ - -\n".to_string());
@@ -107,13 +107,16 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
         4 => {
             message_components.push("| STAGE 4 of 4: BUY\n".to_string());
             message_components.push("| Time to buy something!\n".to_string());
-            message_components.push(format!("| Your Car:\n{}\n", player.car.to_string(),));
+            message_components.push(format!(
+                "| Your Car:\n{}\n",
+                crate::PLAYER.get_car().to_string(),
+            ));
             message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
             message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
             message_components.push(format!(
                 "| {}: {}\n",
                 "Your Still".cyan().bold(),
-                player.still.to_string()
+                crate::PLAYER.get_still().to_string()
             ));
         }
         _ => {
@@ -121,7 +124,7 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
         }
     }
 
-    message_components.push(format!("| Cash: ${}\n", player.money));
+    message_components.push(format!("| Cash: ${}\n", crate::PLAYER.get_money()));
     message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
     message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
 
@@ -150,7 +153,7 @@ pub fn print_separator() {
     println!("+===+===+===+===+===+===+===+===+========+===+===+===+===+===+===+===+===+");
 }
 
-pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die1: u8, die2: u8) {
+pub fn print_roll_prompt(player_is_hidden: bool, die1: u8, die2: u8) {
     if player_is_hidden {
         println!(
             "| You can apply {} to your {} stat & get there quicker.\n| The other will be applied to your {}, keeping you under\n| the radar for longer. Choose wisely...",
@@ -164,22 +167,22 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
             "SPEED".cyan().bold(),
             "(1/2)".bold().cyan()
         );
-        let sum1 = (die1 as u32 + player.car.spd.real).to_string();
+        let sum1 = (die1 as u32 + PLAYER.get_car().spd.real).to_string();
         println!(
             "| {}: [{}] {} + {} -> {} Total Speed",
             "Die 1".cyan(),
             die1,
             die_from_u8(die1),
-            player.car.spd.real,
+            PLAYER.get_car().spd.real,
             sum1.bold().yellow()
         );
-        let sum2 = (die2 as u32 + player.car.spd.real).to_string();
+        let sum2 = (die2 as u32 + PLAYER.get_car().spd.real).to_string();
         println!(
             "| {}: [{}] {} + {} -> {} Total Speed",
             "Die 2".cyan(),
             die2,
             die_from_u8(die2),
-            player.car.spd.real,
+            PLAYER.get_car().spd.real,
             sum2.bold().yellow()
         );
     } else {
@@ -194,22 +197,22 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
             "SPEED".cyan().bold(),
             "(1/2)".bold().cyan()
         );
-        let sum1 = (die1 as u32 + player.car.spd.real).to_string();
+        let sum1 = (die1 as u32 + PLAYER.get_car().spd.real).to_string();
         println!(
             "| {}: [{}] {} + {} -> {} Total Speed",
             "Die 1".cyan(),
             die1,
             die_from_u8(die1),
-            player.car.spd.real,
+            PLAYER.get_car().spd.real,
             sum1.bold().yellow()
         );
-        let sum2 = (die2 as u32 + player.car.spd.real).to_string();
+        let sum2 = (die2 as u32 + PLAYER.get_car().spd.real).to_string();
         println!(
             "| {}: [{}] {} + {} -> {} Total Speed",
             "Die 2".cyan(),
             die2,
             die_from_u8(die2),
-            player.car.spd.real,
+            PLAYER.get_car().spd.real,
             sum2.bold().yellow()
         );
     }
@@ -230,11 +233,11 @@ pub fn print_solo_bad(message: String) {
 }
 
 // Print Stages
-pub fn print_brew_stage(player: &mut crate::Player) {
+pub fn print_brew_stage() {
     println!(
         "| {}:\n{}\n|",
         "Your Still".cyan().bold(),
-        player.still.to_string()
+        PLAYER.get_still().to_string()
     );
     println!("|   /-----------\\");
     println!("|  (|-----------|)");
@@ -244,14 +247,13 @@ pub fn print_brew_stage(player: &mut crate::Player) {
     println!("|");
     println!("| Brewing...");
 }
-pub fn print_drive_stage(
-    player: &mut crate::Player,
-    distance_traveled: u32,
-    route_distance: u32,
-    route_name: &String,
-) {
+pub fn print_drive_stage(distance_traveled: u32, route_distance: u32, route_name: &String) {
     // Print Car
-    println!("| {}: {}", "Your Car".bold().cyan(), player.car.to_string());
+    println!(
+        "| {}: {}",
+        "Your Car".bold().cyan(),
+        PLAYER.get_car().to_string()
+    );
     print_separator();
     // Print Route Progress
     println!(
@@ -264,8 +266,8 @@ pub fn print_drive_stage(
     print!("{}/{}\n", distance_traveled, route_distance);
     print_separator();
 }
-pub fn print_barter_stage(player: &mut crate::Player) {}
-pub fn print_buy_stage(player: &mut crate::Player) {}
+pub fn print_barter_stage() {}
+pub fn print_buy_stage() {}
 
 pub fn print_barn() {
     println!(

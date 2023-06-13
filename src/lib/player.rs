@@ -7,15 +7,11 @@ pub struct Player {
 }
 impl Player {
     pub fn new() -> Self {
-        let mut player = Player::new();
-        player.wallet.set(1000);
-        player.car.name = "[F] Rusty Hatchback".to_string();
-        player.car.spd = Stat::new(2, 5);
-        player.car.dur = Stat::new(2, 5);
-        player.car.cgo = Stat::new(8, 15);
-        player.car.inc = Stat::new(2, 5);
-        player.car.flavor = "Have you had your tetanus shots?".to_string();
-        player
+        Self {
+            wallet: Wallet { money: 1000 },
+            car: Car::default_car(),
+            still: Still::default(),
+        }
     }
     pub fn get_money(&self) -> i32 {
         self.wallet.get()
@@ -23,14 +19,14 @@ impl Player {
     //    pub fn set_money(&mut self, money: i32) {
     //        self.wallet.set(money);
     //    }
-    pub fn get_car(&self) -> Car {
-        self.car.clone()
+    pub fn get_car(&self) -> &Car {
+        &self.car
     }
     //    pub fn set_car(&mut self, car: Car) {
     //        self.car = car;
     //    }
-    pub fn get_still(&self) -> Still {
-        self.still.clone()
+    pub fn get_still(&self) -> &Still {
+        &self.still
     }
     //    pub fn set_still(&mut self, still: Still) {
     //        self.still = still;
