@@ -1,5 +1,5 @@
 use super::sutil::*;
-use crate::MAX_STAT;
+use crate::{CAR_STAT_LENGTH};
 
 pub struct Stat {
     pub real: u32,
@@ -15,7 +15,15 @@ impl std::fmt::Display for Stat {
         write!(
             f,
             "{}",
-            progress_bar_upgradeable(self.real, self.max, MAX_STAT)
+            progress_bar_upgradeable(self.real, self.max, CAR_STAT_LENGTH as u32)
         )
+    }
+}
+impl Clone for Stat {
+	fn clone(&self) -> Self {
+		Self {
+			real: self.real,
+			max: self.max,
+		}
     }
 }

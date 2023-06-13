@@ -1,4 +1,4 @@
-use super::{car::Car, stat::Stat, still::Still, sutil::*};
+use super::{car::Car, still::Still};
 
 pub struct Player {
     pub money: i32,
@@ -10,7 +10,7 @@ impl Player {
         Player {
             money: 0,
             car: Car::new(),
-            still: Still::new(),
+            still: Still::default(),
         }
     }
 }
