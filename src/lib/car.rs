@@ -57,8 +57,8 @@ impl Car {
             "Truck" => Stat::new(rng.gen_range(3..=6), rng.gen_range(6..=11)),
             "Muscle Car" => Stat::new(rng.gen_range(2..=4), rng.gen_range(4..=9)),
             "Hot Rod" => Stat::new(rng.gen_range(2..=5), rng.gen_range(5..=6)),
-            "Death Trap" => Stat::new(rng.gen_range(1..=3), rng.gen_range(3..=5)),
-            "Big Rig" => Stat::new(rng.gen_range(5..=7), rng.gen_range(8..=12)),
+            "Death Trap" => Stat::new(rng.gen_range(2..=3), rng.gen_range(3..=5)),
+            "Big Rig" => Stat::new(rng.gen_range(8..=10), rng.gen_range(10..=12)),
             _ => panic!("Invalid car type"),
         };
         car.cgo = match &car_type[..] {
@@ -90,7 +90,7 @@ impl Car {
             'F' => delta = F_DELTA,
             _ => panic!("Invalid car class"),
         }
-        car.spd.real = Self::safe_add(car.spd.real, delta);
+        car.spd.real = safe_add(car.spd.real, delta);
         car.name = format!("[{}] {} {}", car.class, car_prefix, car_type);
         car.flavor = "TODO: More flavor text".to_string();
         car.price = ((10 + delta) * (10 + delta)) as u32 * (tier + 4) as u32;
@@ -98,13 +98,14 @@ impl Car {
         car
     }
 
-    pub fn safe_add(a: u32, b: i32) -> u32 {
-        let mut c = a as i32 + b;
-        if c <= 0 {
-            c = 1;
-        }
-        c as u32
+}
+
+pub fn safe_add(a: u32, b: i32) -> u32 {
+    let mut c = a as i32 + b;
+    if c <= 0 {
+        c = 1;
     }
+    c as u32
 }
 
 fn make_speed(car_class: &char, car_type: &String) -> Stat {
