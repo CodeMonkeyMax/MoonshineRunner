@@ -51,10 +51,7 @@ fn main() {
                 prompt_to_continue(Some("barter stage".to_string()));
                 barter(cargo_status, route);
             } else if cargo_status < 0 {
-                unsafe {
-                    PLAYER.car.reset();
-                }
-
+                PLAYER.car.reset();
                 // player is boned
                 break;
             }
