@@ -92,10 +92,10 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
         "quit".red(),
         "MOONSHINE RUNNER ".bold().blue(),
         "♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️");
+    print_separator();
+    print_money_progress(player.money as u32, 10000);
+    print_separator();
     let mut message_components: Vec<String> = vec![];
-    //message_components.push("| [ESC] to quit | MOONSHINE RUNNER ♦️ ♥️ ♣️ ♠️\n".to_string());
-    message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
-    message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
     match round_stage {
         1 => {
             message_components.push("| STAGE 1 of 4:".to_string()); // should use '║'
@@ -146,12 +146,12 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
     }
 
     message_components.push(format!("| Cash: ${}\n", player.money));
-    message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
-    message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
 
     for component in message_components {
         print!("{}", component);
     }
+
+    print_separator();
 }
 
 pub fn print_roll(die1: u8, die2: u8) {
@@ -237,6 +237,28 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
             sum2.bold().yellow()
         );
     }
+}
+
+pub fn print_money_progress(real: u32, max: u32) {
+    let sum = max;
+    let mut factor = 0;
+    if sum != 0 {
+        // can't divide a negative unsigned int!
+        factor = (sum - 1) / 32; // if 0, sum is less than scale. '-1' stops a max value from triggering a resize. If 1, sum is greater, so size should double (by halving values).
+    }
+    //println!("Real: {} Max: {} Factor: {}", real, max, factor);
+    let _real = real / (factor + 1);
+    let _max = max / (factor + 1);
+    print!("| {}: [","Your Progress".green().bold());
+    for _i in 0.._real {
+        print!("{}","$".green());
+    }
+    for _i in _real.._max {
+        print!("{}","$".dim());
+    }
+    print!("]");
+    print!(" {}/{}", real.to_string().green(), max.to_string().bold());
+    println!();
 }
 
 pub fn clear() {
