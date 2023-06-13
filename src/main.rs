@@ -1,10 +1,8 @@
-use crossterm::event::{read, Event, KeyCode, KeyEventKind, KeyEvent};
+use crossterm::event::{read, Event, KeyCode, KeyEventKind};
 use crossterm::style::{SetForegroundColor, Stylize};
-//use crossterm::terminal::{Clear, ClearType};
-//use crossterm::{execute, Result};
 use lib::{car::Car, player::Player, route::Route, stat::Stat, sutil::*};
 use rand::Rng;
-use std::{io::Write, thread, time::Duration, write};
+use std::{io::Write, thread, time::Duration};
 
 pub mod lib;
 
@@ -97,17 +95,14 @@ fn default_car() -> Car {
 
 fn brew(mut player: &mut Player) {
     print_header(player, 1);
-    //print_barn();
-    //prompt_to_continue(Some("brew stage".to_string()));
-    print_header(player, 1);
     print_brew_stage(player);
     println!();
     for i in 0..36 {
         print!("\r[");
-        for j in 0..i {
+        for _j in 0..i {
             print!("=")
         }
-        for j in i..36 - 1 {
+        for _j in i..36 - 1 {
             print!(" ");
         }
         print!("]");
@@ -116,7 +111,6 @@ fn brew(mut player: &mut Player) {
         std::io::stdout().flush().unwrap();
 
         // Wait for a short duration
-
         thread::sleep(Duration::from_millis(30));
     }
     println!();
@@ -307,7 +301,7 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
 }
 
 fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
-    let mut mult: f64 = 1.0;
+    let mut mult: f64;
     print_header(player, 3);
     prompt_to_continue(Some("roll".to_string()));
     match cargo_status {
@@ -316,7 +310,7 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
             mult = 0.5;
         }
         _ => {
-            mult = (cargo_status as f64 / (2.0 * player.car.dur.real as f64)) + 0.5;
+            mult = cargo_status as f64 / (2.0 * player.car.dur.real as f64) + 0.5;
         }
     }
     println!("DEBUG: Mult = {}", mult);
@@ -388,7 +382,7 @@ fn auction_house(mut player: &mut Player) {
         '1' => {
             if player.money >= car1.price as i32 {
                 player.money -=
-                    (car1.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
+                    car1.price as i32 - (player.car.price as f64 * 0.75).round() as i32;
                 player.car = car1;
             } else {
                 println!("You don't have enough money to buy this car.");
@@ -397,7 +391,7 @@ fn auction_house(mut player: &mut Player) {
         '2' => {
             if player.money >= car2.price as i32 {
                 player.money -=
-                    (car2.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
+                    car2.price as i32 - (player.car.price as f64 * 0.75).round() as i32;
                 player.car = car2;
             } else {
                 println!("You don't have enough money to buy this car.");
@@ -406,7 +400,7 @@ fn auction_house(mut player: &mut Player) {
         '3' => {
             if player.money >= car3.price as i32 {
                 player.money -=
-                    (car3.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
+                    car3.price as i32 - (player.car.price as f64 * 0.75).round() as i32;
                 player.car = car3;
             } else {
                 println!("You don't have enough money to buy this car.");
@@ -424,7 +418,7 @@ fn shop_category(player: &mut Player, category_code: char) -> bool {
     println!("{}", print_msg.green());
     match category_code {
         'c' => {
-            println!("OK, let's look at some car upgrades.");
+            println!("{}","Car Upgrades: ".bold());
             println!(
                 "Do you want to upgrade:\nSPEED (${}), DURABILITY (${}) or CARGO (${})? (s/d/c)",
                 (pow(1.16, player.car.spd.real as f64) * 100.0) as i32,
@@ -438,7 +432,7 @@ fn shop_category(player: &mut Player, category_code: char) -> bool {
             );
         }
         's' => {
-            println!("OK, let's look at some still upgrades.");
+            println!("{}","Still Upgrades: ".bold());
             println!(
                 "Do you want to upgrade:\nVOLUME (${}), SPEED (${}) or QUALITY (${})? (v/s/q)",
                 (pow(1.16, player.still.vol.real as f64) * 100.0) as i32,
@@ -509,9 +503,6 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
             c => {
                 panic!("How did you get {}?", c);
             }
-            _ => {
-                panic!("This isn't supposed to happen.");
-            }
         },
         // Still Upgrades
         's' => match item_code {
@@ -562,9 +553,6 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
             }
             c => {
                 panic!("How did you get {}?", c);
-            }
-            _ => {
-                panic!("This isn't supposed to happen.");
             }
         },
         _ => {
@@ -856,33 +844,28 @@ fn get_instant_input(chars: &[char]) -> Option<char> {
 }
 
 fn wait_for_enter() {
-    crossterm::terminal::enable_raw_mode();
+    crossterm::terminal::enable_raw_mode().unwrap();
     let mut player_pressed_enter = false;
     while !player_pressed_enter {
         if let Ok(Event::Key(key_event)) = read() {
             match key_event.code {
                 KeyCode::Enter => player_pressed_enter = true,
-                KeyCode::Esc => {
-                    if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-                        crossterm::terminal::disable_raw_mode();
-                    }
-                    quit();
-                }
+                KeyCode::Esc => quit(),
                 _ => continue,
             }
         }
     }
-    crossterm::terminal::disable_raw_mode();
+    crossterm::terminal::disable_raw_mode().unwrap();
 }
 
 fn await_key_down() -> Option<char> {
-    let mut key: Option<char> = None;
+    let key: Option<char>;
     let mut key_down: Option<crossterm::event::KeyCode> = None;
 
     //let mut prev_key_down: Option<crossterm::event::KeyCode> = None; // dont need
     
     while key_down == None {
-        crossterm::terminal::enable_raw_mode();
+        crossterm::terminal::enable_raw_mode().unwrap();
         if let Event::Key(event) = read().ok()? {
             // MATCH EVENT::KEYEVENTKIND FOR "PRESS" TYPE
             key_down = match event.kind {
@@ -903,7 +886,7 @@ fn await_key_down() -> Option<char> {
     };
 
     if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-        crossterm::terminal::disable_raw_mode();
+        crossterm::terminal::disable_raw_mode().unwrap();
     }
 
     key
@@ -937,7 +920,7 @@ fn prompt_to_continue(string: Option<String>) {
 
 fn quit() {
     if crossterm::terminal::is_raw_mode_enabled().unwrap() {
-        crossterm::terminal::disable_raw_mode();
+        crossterm::terminal::disable_raw_mode().unwrap();
     }
     println!("Thanks for playing!");
     std::process::exit(0);

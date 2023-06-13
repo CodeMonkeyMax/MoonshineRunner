@@ -87,10 +87,11 @@ pub fn die_from_u8(num: u8) -> char {
 pub fn print_header(player: &mut crate::Player, round_stage: i32) {
     clear();
     print_separator();
-    println!("| [{}] to {} | {} {:<32}","ESC".bold(),
+    println!("| [{}] to {} |   |  {} | {:<6}",
+        "ESC".bold(),
         "quit".red(),
         "MOONSHINE RUNNER ".bold().blue(),
-        "♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️ ♠️");
+        "♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️");
     let mut message_components: Vec<String> = vec![];
     //message_components.push("| [ESC] to quit | MOONSHINE RUNNER ♦️ ♥️ ♣️ ♠️\n".to_string());
     message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
