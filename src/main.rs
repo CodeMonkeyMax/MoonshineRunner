@@ -342,26 +342,22 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
 }
 
 fn buy(player: &mut Player) {
-    print_header(player, 4);
-    println!("Visit the Auction House to buy new car? (y/n)");
-    let mut user_entry: Option<char> = get_instant_input(&['y', 'n']);
-    if user_entry == Some('y') {
-        auction_house(player);
-    }
-    print_header(player, 4);
-    println!("Do you want to buy any upgrades? (y/n)");
-    let mut user_entry: Option<char> = get_instant_input(&['y', 'n']);
-    while user_entry != Some('n') {
+    let mut user_entry: Option<char> = None;
+    while user_entry != Some('\0') {
         print_header(player, 4);
-        println!("Do you want to buy upgrades for your CAR or for your STILL? (c/s)");
-        if shop_category(player, get_instant_input(&['c', 's']).unwrap()) {
+        println!("Visit the Auction House to buy a new car (A), Upgrade Your Still (S), Buy Car Upgrades (C) or Continue (TAB)");
+        user_entry = get_instant_input(&['a', 's', 'c', '\0']);
+        let success: bool = match user_entry {
+            Some('a') => { auction_house(player); true},
+            Some('s') => shop_category(player, 's'),
+            Some('c') => shop_category(player, 'c'),
+            _ => false
+        };
+        if success {
             print_header(player, 4);
             println!("Congratulations on your snazzy new upgrade.\n");
         }
-        println!("{}", "Shop Again? (y/n)\n".cyan().bold());
-        user_entry = get_instant_input(&['y', 'n']);
     }
-    if user_entry == Some('y') {}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
