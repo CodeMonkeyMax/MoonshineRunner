@@ -251,9 +251,9 @@ pub fn print_drive_stage(
     print_separator();
     // Print Route Progress
     println!(
-        "| {}: {}",
-        (route_name.clone()).red(),
-        "Your Progress".bold().yellow()
+        "| {}:\n| {}",
+        "Your Progress".bold().yellow(),
+        (route_name.clone()).red()
     );
     print!("| ");
     print_progress_bar_head(distance_traveled, route_distance);
@@ -280,7 +280,8 @@ pub fn print_barn() {
 
 pub fn print_bottles() {
     println!(
-        "\r\t    ___    ____
+        "\r
+\t    ___    ____
 \t   |___|  (____)
 \t    | |   _)  (_
 \t  _/   \\_/~~~~~~\\
@@ -290,4 +291,18 @@ pub fn print_bottles() {
 \t |______ )______(
 \t(_______/________\\"
     );
+}
+
+pub fn print_white_lightning() {
+    println!(
+        "\r
+        ,/
+     ,'/
+   ,' /_,
+ .'_  ,'
+   /,'
+  /'
+ '
+ "
+    )
 }

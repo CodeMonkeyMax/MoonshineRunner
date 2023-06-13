@@ -145,26 +145,29 @@ fn brew(mut player: &mut Player) {
         _ => 3,
     };
     // Set Quantity
-    player.car.cargo_quantity =
-        calculate_cargo_quantity(player.still.vol.real, player.car.cgo.real);
+    let output = (player.still.spd.real * player.still.vol.real) * 2;
+    player.car.cargo_quantity = calculate_cargo_quantity(output, player.car.cgo.real);
     match quality {
         1 => {
             println!(
-                "Yeesh! You brewed some '{}' Good luck getting rid of this!",
+                "Yeesh! You brewed {} cases of '{}' Good luck getting rid of this!",
+                output,
                 "Rotgut Wiskee".red()
             );
             player.car.cargo_quality = 1;
         }
         2 => {
             println!(
-                "You brewed some '{}.' This will be plenty easy to move!",
+                "You brewed {} cases of '{}.' This will be plenty easy to move!",
+                output,
                 "OK Hooch".yellow()
             );
             player.car.cargo_quality = 2;
         }
         3 => {
             println!(
-                "Hoo wee! This here's some '{}!' Worth top dollar, to the right buyer...",
+                "Hoo wee! This here's {} cases of '{}!' Worth top dollar, to the right buyer...",
+                output,
                 "White Lightning".green()
             );
             player.car.cargo_quality = 1;
@@ -174,6 +177,20 @@ fn brew(mut player: &mut Player) {
 }
 
 fn drive(mut player: &mut Player) -> (i32, Route) {
+    print_header(player, 2);
+    let booze = match player.car.cargo_quality {
+        1 => "Rotgut Wiskee".red(),
+        2 => "OK Hooch".yellow(),
+        3 => "White Lightning".green(),
+        _ => panic!("Invalid stat value!"),
+    };
+    println!(
+        "| You fit {} cases of {} into your {}.\n| (total capacity: {}).\n",
+        player.car.cargo_quantity.to_string().cyan(),
+        booze,
+        player.car.name.to_string().green(),
+        player.car.cgo.real
+    );
     let route = choose_route();
     let route_distance = route.distance;
     let heat = route.heat;
@@ -205,7 +222,9 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
             let chase_result = chase(&mut player, route, distance_traveled, heat);
             match chase_result {
                 (-1, _) => println!("Your whiskey and your ride are history, Gambler!"),
-                (0, _) => println!("You barely made it outta there! Good thing you talked 'em into returning your keys!'"),
+                (0, _) => print_solo_bad(
+                    "You've been wrecked! Back to the moonshine still...".to_string(),
+                ),
                 (_, _) => println!("Holy Hockey Sticks! You made it by the seat of your pants!"),
             }
             player.car.current_durability = player.car.dur.real;
@@ -220,7 +239,6 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         let police_roll: u8 = get_random_number(6) as u8;
 
         // Part 2 - Roll Dice
-
         print_header(player, 2);
         if distance_traveled >= 1 {
             println!(
@@ -255,7 +273,7 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
 
         // Part 3 - Consequences, John.
         print_header(player, 2);
-        if distance_traveled >= 1 {
+        if distance_traveled >= 1 && !player_spotted {
             println!(
                 "| {} Good work, Gambler. They haven't spotted you yet!",
                 "STATUS: ".cyan()
@@ -280,11 +298,10 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         // Calculate Heat
         let total_heat: u32 = police_roll as u32 + heat;
         // Check Roll
-        if other_die as u32 + player.car.inc.real < total_heat
-            && distance_traveled != route_distance
+        if other_die as u32 + player.car.inc.real < total_heat && distance_traveled < route_distance
         {
             print_solo_bad("You've been made! Floor it!".to_string());
-            prompt_to_continue(Some("roll".to_string()));
+            prompt_to_continue(None);
             player_spotted = true;
         }
     }
@@ -307,7 +324,7 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
     }
     println!("DEBUG: Mult = {}", mult);
     mult = mult * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT;
-    mult = mult * route.prefereces[player.car.cargo_quality as usize] as f64;
+    mult = mult * route.prices[player.car.cargo_quality as usize] as f64;
     let die = get_random_number(6);
     let money_increment = match die {
         1 => mult * 0.65,
@@ -646,6 +663,9 @@ fn chase(
                 .bold()
         );
         println!();
+        if distance_traveled >= route_distance {
+            println!("{}! You made it just in time!", "Hoo Wee".bold().green());
+        }
         // Give Results
         let total_heat: u32 = police_roll as u32 + heat;
         if other_die as u32 + player.car.inc.real < total_heat {
@@ -676,7 +696,7 @@ fn chase(
 }
 
 fn emergency_roll() -> i32 {
-    println!("The cops have formed their blockade - you might be a goner! Roll those dice and pray, Gambler!");
+    println!("The cops have formed their blockade - you might be a goner! Roll those dice and pray, Gambler!\nRemember: you need to roll a {} or you're {}.", "10".bold().red(), "BUSTED".bold().red());
     let die1: u8 = get_random_number(6) as u8;
     let die2: u8 = get_random_number(6) as u8;
     println!(
@@ -693,7 +713,7 @@ fn choose_route() -> Route {
     let routes: Vec<Route> = vec![
         // Route 1
         Route {
-            name: String::from("Route 1"),
+            name: String::from("Route 4"),
             distance: 24,
             heat: 0,
             prefereces: vec![4, 3, 2],
@@ -701,43 +721,43 @@ fn choose_route() -> Route {
         },
         // Route 2
         Route {
-            name: String::from("Route 2"),
-            distance: 24,
-            heat: 0,
+            name: String::from("Country Road 97"),
+            distance: 64,
+            heat: 1,
             prefereces: vec![4, 3, 2],
             prices: vec![5, 3, 2],
         },
         // Route 3
         Route {
-            name: String::from("Route 3"),
-            distance: 24,
-            heat: 0,
+            name: String::from("Marina Dr."),
+            distance: 32,
+            heat: 3,
             prefereces: vec![4, 3, 2],
             prices: vec![5, 3, 2],
         },
         // Route 4
         Route {
-            name: String::from("Route 4"),
-            distance: 24,
-            heat: 0,
+            name: String::from("Lakeside Ave"),
+            distance: 48,
+            heat: 5,
             prefereces: vec![4, 3, 2],
             prices: vec![5, 3, 2],
         },
         // Route 5
         Route {
-            name: String::from("Route 5"),
+            name: String::from("Main St. Downtown"),
             distance: 24,
-            heat: 0,
+            heat: 8,
             prefereces: vec![4, 3, 2],
-            prices: vec![5, 3, 2],
+            prices: vec![2, 6, 7],
         },
         // Route 6
         Route {
-            name: String::from("Route 6"),
-            distance: 24,
-            heat: 0,
-            prefereces: vec![4, 3, 2],
-            prices: vec![5, 3, 2],
+            name: String::from("Main St. Uptown"),
+            distance: 32,
+            heat: 10,
+            prefereces: vec![1, 3, 2],
+            prices: vec![1, 5, 8],
         },
     ];
     let mut drawn_routes: Vec<usize> = Vec::new();
@@ -756,7 +776,7 @@ fn choose_route() -> Route {
     for route_index in &drawn_routes {
         let mut result: Vec<String> = Vec::new();
         i = i + 1;
-        result.push(format!("Route #{}:     \t", i.to_string().green()));
+        result.push(format!("Route #{}:               ", i.to_string().green()));
         for field in routes.get(*route_index).unwrap().clone().get_all_fields() {
             result.push(field.to_string());
         }
@@ -766,7 +786,7 @@ fn choose_route() -> Route {
     for line_num in 0..9 {
         for column in 0..3 {
             print!(
-                "| {:<18}\t",
+                "| {:<21} ",
                 routes_fields.get(column).unwrap().get(line_num).unwrap()
             );
         }
@@ -829,6 +849,7 @@ fn get_instant_input(chars: &[char]) -> Option<char> {
 }
 
 fn wait_for_enter() {
+    crossterm::terminal::enable_raw_mode();
     let mut player_pressed_enter = false;
     while !player_pressed_enter {
         if let Ok(Event::Key(key_event)) = read() {
@@ -844,12 +865,17 @@ fn wait_for_enter() {
             }
         }
     }
+    crossterm::terminal::disable_raw_mode();
 }
 
 fn await_key_down() -> Option<char> {
+    crossterm::terminal::enable_raw_mode();
     if let Ok(Event::Key(key_event)) = read() {
         match key_event.code {
-            KeyCode::Char(c) => Some(c),
+            KeyCode::Char(c) => {
+                crossterm::terminal::disable_raw_mode();
+                return Some(c);
+            }
             KeyCode::Esc => {
                 if crossterm::terminal::is_raw_mode_enabled().unwrap() {
                     crossterm::terminal::disable_raw_mode();

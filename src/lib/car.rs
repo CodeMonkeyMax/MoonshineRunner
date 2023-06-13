@@ -210,7 +210,7 @@ impl std::string::ToString for Car {
     fn to_string(&self) -> String {
         let mut durmessage = self.dur.real.to_string().white();
         if self.current_durability < self.dur.real {
-            durmessage = format!("{} - damaged!", self.dur.real)
+            durmessage = format!("{}/{} - damaged!", self.current_durability, self.dur.real)
                 .to_string()
                 .bold()
                 .red();
