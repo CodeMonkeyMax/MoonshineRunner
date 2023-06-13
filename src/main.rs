@@ -339,7 +339,16 @@ fn buy(player: &mut Player) {
     let mut user_entry: Option<char> = None;
     while user_entry != Some('\0') {
         print_header(player, 4);
-        println!("Visit the Auction House to buy a new car (A), Upgrade Your Still (S), Buy Car Upgrades (C) or Continue (TAB)");
+        println!("\n| Visit the {} {} to buy a new car, Upgrade Your {} {},\n| Buy {} Upgrades {} or {} {}?\n",
+            "Auction House".yellow(),
+            "(A)".bold().cyan(),
+            "Still".yellow(),
+            "(S)".bold().cyan(),
+            "Car".yellow(),
+            "(C)".bold().cyan(),
+            "Continue".yellow(),
+            "[TAB]".bold().cyan()
+        );
         user_entry = get_instant_input(&['a', 's', 'c', '\0']);
         let success: bool = match user_entry {
             Some('a') => { auction_house(player); true},
@@ -378,7 +387,7 @@ fn auction_house(mut player: &mut Player) {
         car3.price.to_string(),
     );
     println!("Select a car you'd like to buy (1/2/3)");
-    match get_instant_input(&['1', '2', '3']).unwrap() {
+    match get_instant_input(&['1', '2', '3', '\0']).unwrap() {
         '1' => {
             if player.money >= car1.price as i32 {
                 player.money -=
@@ -406,6 +415,7 @@ fn auction_house(mut player: &mut Player) {
                 println!("You don't have enough money to buy this car.");
             }
         }
+        '\0' => (), // Do nothing & conclude function on 'sentinel'
         _ => {
             panic!("Invalid Input")
         }
@@ -414,16 +424,16 @@ fn auction_house(mut player: &mut Player) {
 
 fn shop_category(player: &mut Player, category_code: char) -> bool {
     print_header(player, 4);
-    let print_msg: String = format!("Your Money: {}", player.money);
+    let print_msg: String = format!("| Your Money: {}", player.money);
     println!("{}", print_msg.green());
     match category_code {
         'c' => {
-            println!("{}","Car Upgrades: ".bold());
+            println!("| {}","Car Upgrades: ".bold());
             println!(
-                "Do you want to upgrade:\nSPEED (${}), DURABILITY (${}) or CARGO (${})? (s/d/c)",
+                "| Do you want to upgrade:\n| SPEED (${}), DURABILITY (${}) or CARGO (${})? (s/d/c)",
                 (pow(1.16, player.car.spd.real as f64) * 100.0) as i32,
                 (pow(1.16, player.car.dur.real as f64) * 100.0) as i32,
-                (pow(1.16, player.car.cgo.real as f64) * 100.0) as i32
+                (pow(1.08, player.car.spd.real as f64) * 50.0) as i32
             );
             return try_buy(
                 player,
@@ -432,9 +442,9 @@ fn shop_category(player: &mut Player, category_code: char) -> bool {
             );
         }
         's' => {
-            println!("{}","Still Upgrades: ".bold());
+            println!("{}","| Still Upgrades: ".bold());
             println!(
-                "Do you want to upgrade:\nVOLUME (${}), SPEED (${}) or QUALITY (${})? (v/s/q)",
+                "| Do you want to upgrade:\n| VOLUME (${}), SPEED (${}) or QUALITY (${})? (v/s/q)",
                 (pow(1.16, player.still.vol.real as f64) * 100.0) as i32,
                 (pow(1.16, player.still.spd.real as f64) * 100.0) as i32,
                 (pow(1.16, player.still.qlt.real as f64) * 100.0) as i32
@@ -457,46 +467,46 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
         'c' => match item_code {
             's' => {
                 if player.car.spd.real < player.car.spd.max {
-                    let cost = (player.car.spd.real * 10) as i32;
+                    let cost = (pow(1.16, player.car.spd.real as f64) * 100.0) as i32;
                     if player.money >= cost {
                         player.car.spd.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
-                        println!("Not enough change, chump!");
+                        println!("{}","Not enough change, chump!".bold().red());
                     }
                 } else {
-                    println!("Woah there! You're already maxed out, speed racer!");
+                    println!("{}","Woah there! You're already maxed out, speed racer!".bold().yellow());
                 }
                 return false;
             }
             'd' => {
                 if player.car.dur.real < player.car.dur.max {
-                    let cost = (player.car.dur.real * 10) as i32;
+                    let cost = (pow(1.16, player.car.dur.real as f64) * 100.0) as i32;
                     if player.money >= cost {
                         player.car.dur.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
-                        println!("Not enough change, chump!");
+                        println!("{}","Not enough change, chump!".bold().red());
                     }
                 } else {
-                    println!("You're already maxed out, speed racer!");
+                    println!("{}","Woah there! You're already maxed out, speed racer!".bold().yellow());
                 }
                 return false;
             }
             'c' => {
                 if player.car.cgo.real < player.car.cgo.max {
-                    let cost = (player.car.cgo.real * 10) as i32;
+                    let cost = (pow(1.08, player.car.spd.real as f64) * 50.0) as i32;
                     if player.money >= cost {
                         player.car.cgo.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
-                        println!("Not enough change, chump!");
+                        println!("{}","Not enough change, chump!".bold().red());
                     }
                 } else {
-                    println!("You're already maxed out, speed racer!");
+                    println!("{}","Woah there! You're already maxed out, speed racer!".bold().yellow());
                 }
                 return false;
             }
@@ -508,46 +518,46 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
         's' => match item_code {
             's' => {
                 if player.still.spd.real < player.still.spd.max {
-                    let cost = (player.still.spd.real * 10) as i32;
+                    let cost = (pow(1.16, player.still.spd.real as f64) * 100.0) as i32;
                     if player.money >= cost {
                         player.still.spd.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
-                        println!("Not enough change, chump!");
+                        println!("{}","Not enough change, chump!".bold().red());
                     }
                 } else {
-                    println!("Woah there Pappy, you're already maxed out!");
+                    println!("{}","Woah there Pappy, you're already maxed out!".bold().yellow());
                 }
                 return false;
             }
             'v' => {
                 if player.still.vol.real < player.still.vol.max {
-                    let cost = (player.still.vol.real * 10) as i32;
+                    let cost = (pow(1.16, player.still.vol.real as f64) * 100.0) as i32;
                     if player.money >= cost {
                         player.still.vol.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
-                        println!("Not enough change, chump!");
+                        println!("{}","Not enough change, chump!".bold().red());
                     }
                 } else {
-                    println!("Woah there Pappy, you're already maxed out!");
+                    println!("{}","Woah there Pappy, you're already maxed out!".bold().yellow());
                 }
                 return false;
             }
             'q' => {
                 if player.still.qlt.real < player.still.qlt.max {
-                    let cost = (player.still.qlt.real * 10) as i32;
+                    let cost = (pow(1.16, player.still.qlt.real as f64) * 100.0) as i32;
                     if player.money >= cost {
                         player.still.qlt.real += 1;
                         player.money -= cost;
                         return true;
                     } else {
-                        println!("Not enough change, chump!");
+                        println!("{}","Not enough change, chump!".bold().red());
                     }
                 } else {
-                    println!("Woah there Pappy, you're already maxed out!");
+                    println!("{}","Woah there Pappy, you're already maxed out!".bold().yellow());
                 }
                 return false;
             }
@@ -667,8 +677,17 @@ fn chase(
             );
             player.car.current_durability -= 1;
             if player.car.current_durability == 0 {
+                // Header n Stuff
+                print_header(player, 2);
+                print_drive_info(player, distance_traveled, route_distance, &route.name);
+                println!(
+                    "| Cops' Attack exceeds your Defense:\n| {}",
+                    "You've been rammed!\n\nYour ride's beat!".bold().red()
+                );
+                prompt_to_continue(None);
                 return (0, route);
             }
+            println!();
         } else if distance_traveled < route_distance {
             println!("| {}", "You might just make it yet!".green());
         } else {

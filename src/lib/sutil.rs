@@ -131,7 +131,8 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
 |\t| _ ) | | \\ \\ / / / __|_   _/_\\ / __| __|
 |\t| _ \\ |_| |\\ V /  \\__ \\ | |/ _ \\ (_ | _| 
 |\t|___/\\___/  |_|   |___/ |_/_/ \\_\\___|___|\n|\n".to_string());
-            message_components.push("| Time to buy something!\n".to_string());
+            message_components.push("+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$".to_string());
+            message_components.push("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$+\n".to_string());
             message_components.push(format!("| Your Car:\n| {}\n", player.car.to_string(),));
             message_components.push("+===+===+===+===+===+===+===+===+====".to_string());
             message_components.push("====+===+===+===+===+===+===+===+===+\n".to_string());
@@ -183,7 +184,7 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
             "stealth".yellow()
         );
         println!(
-            "\n\tWhich roll do you want to apply to your {}? {}\n",
+            "\nWhich roll do you want to apply to your {}? {}\n",
             "SPEED".cyan().bold(),
             "(1/2)".bold().cyan()
         );
@@ -207,7 +208,7 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
         );
     } else {
         println!(
-            "| You can use {} to go {}, and one to {} the cops' pit maneuvers.",
+            "| You can use {} to go {}, one to {} the cops' pit maneuvers.",
             "one roll".cyan(),
             "faster".green(),
             "evade".yellow()
