@@ -1,3 +1,4 @@
+use crate::PLAYER;
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::{
     cursor, execute,

@@ -1,6 +1,7 @@
 use crossterm::event::{read, Event, KeyCode};
 use crossterm::style::{SetForegroundColor, Stylize};
 use lib::still::Still;
+use lib::wallet::Wallet;
 //use crossterm::terminal::{Clear, ClearType};
 //use crossterm::{execute, Result};
 use lib::{car::Car, player::Player, route::Route, stat::Stat, sutil::*};
@@ -13,7 +14,11 @@ pub static MAX_STAT: u32 = 24;
 pub static CAR_STAT_LENGTH: u8 = 12;
 pub static MONEY_MULT: f64 = 10.0;
 
-static PLAYER: Player = Player::new();
+static PLAYER: Player = Player {
+    wallet: Wallet { money: 1000 },
+    car: Car::default_car(),
+    still: Still::default(),
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // MAIN ////////////////////////////////////////////////////////////////////////////////
@@ -379,8 +384,9 @@ fn auction_house() {
         match get_instant_input(&['1', '2', '3']).unwrap() {
             '1' => {
                 if PLAYER.get_money() >= car1.price as i32 {
-                    PLAYER.get_money() -=
-                        (car1.price as i32 - (PLAYER.car.price as f64 * 0.75).round() as i32);
+                    PLAYER.wallet.sub(
+                        car1.price as i32 - (PLAYER.get_car().price as f64 * 0.75).round() as i32,
+                    );
                     PLAYER.car = car1;
                 } else {
                     println!("You don't have enough money to buy this car.");
@@ -388,8 +394,9 @@ fn auction_house() {
             }
             '2' => {
                 if PLAYER.get_money() >= car2.price as i32 {
-                    PLAYER.get_money() -=
-                        (car2.price as i32 - (PLAYER.car.price as f64 * 0.75).round() as i32);
+                    PLAYER.wallet.sub(
+                        car2.price as i32 - (PLAYER.get_car().price as f64 * 0.75).round() as i32,
+                    );
                     PLAYER.car = car2;
                 } else {
                     println!("You don't have enough money to buy this car.");
@@ -397,9 +404,10 @@ fn auction_house() {
             }
             '3' => {
                 if PLAYER.get_money() >= car3.price as i32 {
-                    PLAYER.get_money() -=
-                        (car3.price as i32 - (player.car.price as f64 * 0.75).round() as i32);
-                    player.car = car3;
+                    PLAYER.wallet.sub(
+                        car3.price as i32 - (PLAYER.get_car().price as f64 * 0.75).round() as i32,
+                    );
+                    PLAYER.car = car3;
                 } else {
                     println!("You don't have enough money to buy this car.");
                 }
@@ -449,9 +457,9 @@ fn try_buy(category_code: char, item_code: char) -> bool {
             's' => {
                 if PLAYER.get_car().spd.real < PLAYER.get_car().spd.max {
                     let cost = (PLAYER.get_car().spd.real * 10) as i32;
-                    if player.money >= cost {
+                    if PLAYER.get_money() >= cost {
                         PLAYER.car.spd.real += 1;
-                        player.money -= cost;
+                        PLAYER.wallet.sub(cost);
                         return true;
                     } else {
                         println!("Not enough change, chump!");
@@ -464,9 +472,9 @@ fn try_buy(category_code: char, item_code: char) -> bool {
             'd' => {
                 if PLAYER.get_car().dur.real < PLAYER.get_car().dur.max {
                     let cost = (PLAYER.get_car().dur.real * 10) as i32;
-                    if player.money >= cost {
+                    if PLAYER.get_money() >= cost {
                         PLAYER.car.dur.real += 1;
-                        player.money -= cost;
+                        PLAYER.wallet.sub(cost);
                         return true;
                     } else {
                         println!("Not enough change, chump!");
@@ -479,9 +487,9 @@ fn try_buy(category_code: char, item_code: char) -> bool {
             'c' => {
                 if PLAYER.get_car().cgo.real < PLAYER.get_car().cgo.max {
                     let cost = (PLAYER.get_car().cgo.real * 10) as i32;
-                    if player.money >= cost {
-                        player.car.cgo.real += 1;
-                        player.money -= cost;
+                    if PLAYER.get_money() >= cost {
+                        PLAYER.car.cgo.real += 1;
+                        PLAYER.wallet.sub(cost);
                         return true;
                     } else {
                         println!("Not enough change, chump!");
@@ -503,9 +511,9 @@ fn try_buy(category_code: char, item_code: char) -> bool {
             's' => {
                 if PLAYER.get_still().spd.real < PLAYER.get_still().spd.max {
                     let cost = (PLAYER.get_still().spd.real * 10) as i32;
-                    if player.money >= cost {
-                        player.still.spd.real += 1;
-                        player.money -= cost;
+                    if PLAYER.get_money() >= cost {
+                        PLAYER.still.spd.real += 1;
+                        PLAYER.wallet.sub(cost);
                         return true;
                     } else {
                         println!("Not enough change, chump!");
@@ -518,9 +526,9 @@ fn try_buy(category_code: char, item_code: char) -> bool {
             'v' => {
                 if PLAYER.get_still().vol.real < PLAYER.get_still().vol.max {
                     let cost = (PLAYER.get_still().vol.real * 10) as i32;
-                    if player.money >= cost {
-                        player.still.vol.real += 1;
-                        player.money -= cost;
+                    if PLAYER.get_money() >= cost {
+                        PLAYER.still.vol.real += 1;
+                        PLAYER.wallet.sub(cost);
                         return true;
                     } else {
                         println!("Not enough change, chump!");
@@ -533,9 +541,9 @@ fn try_buy(category_code: char, item_code: char) -> bool {
             'q' => {
                 if PLAYER.get_still().qlt.real < PLAYER.get_still().qlt.max {
                     let cost = (PLAYER.get_still().qlt.real * 10) as i32;
-                    if player.money >= cost {
-                        player.still.qlt.real += 1;
-                        player.money -= cost;
+                    if PLAYER.get_money() >= cost {
+                        PLAYER.still.qlt.real += 1;
+                        PLAYER.wallet.sub(cost);
                         return true;
                     } else {
                         println!("Not enough change, chump!");
@@ -563,7 +571,7 @@ fn chase(route: Route, mut distance_traveled: u32, heat: u32) -> (i32, Route) {
     // Initialize Chase & Calculate number of Rolls till Blockade
     let route_distance = route.distance;
     let mut num_rolls_left =
-        1 + (route_distance - distance_traveled) / (Player::get_car().spd.real + 3); // was divided by speed + 4
+        1 + (route_distance - distance_traveled) / (PLAYER.get_car().spd.real + 3); // was divided by speed + 4
 
     // Start Loop
     while num_rolls_left > 0 {

@@ -1,5 +1,5 @@
 use super::sutil::*;
-use crate::{CAR_STAT_LENGTH};
+use crate::CAR_STAT_LENGTH;
 
 pub struct Stat {
     pub real: u32,
@@ -20,9 +20,10 @@ impl std::fmt::Display for Stat {
     }
 }
 impl Clone for Stat {
-	fn clone(&self) -> Self {
-		Self {
-			real: self.real,
-			max: self.max,
-		}
+    fn clone(&self) -> Self {
+        Self {
+            real: self.real,
+            max: self.max,
+        }
+    }
 }

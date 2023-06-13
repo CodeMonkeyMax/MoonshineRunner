@@ -41,7 +41,18 @@ impl Car {
         }
     }
     pub fn reset(&mut self) {
-        self = &mut Self::default_car();
+        let car = Self::default_car();
+        self.name = car.name;
+        self.spd = car.spd;
+        self.dur = car.dur;
+        self.cgo = car.cgo;
+        self.inc = car.inc;
+        self.flavor = car.flavor;
+        self.class = car.class;
+        self.cargo_quality = car.cargo_quality;
+        self.cargo_quantity = car.cargo_quantity;
+        self.price = car.price;
+        self.current_durability = car.current_durability;
     }
     pub fn default_car() -> Car {
         Car {
