@@ -13,7 +13,7 @@ pub static MAX_STAT: u32 = 24;
 pub static CAR_STAT_LENGTH: u8 = 12;
 pub static MONEY_MULT: f64 = 10.0;
 
-static mut PLAYER: Player = Player::new();
+static PLAYER: Player = Player::new();
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // MAIN ////////////////////////////////////////////////////////////////////////////////
@@ -100,7 +100,7 @@ fn brew() {
     println!();
     unsafe {
         //take into account player's still size and quality
-        let still: Still = PLAYER.get_still();
+        let still: Still = *PLAYER.get_still();
         let quality_odds_map = match still.qlt.real {
             12 => (5, 10, 85),
             11 => (10, 15, 75),
@@ -167,10 +167,10 @@ fn drive() -> (i32, Route) {
     };
     println!(
         "| You fit {} cases of {} into your {}.\n| (total capacity: {}).\n",
-        player.car.cargo_quantity.to_string().cyan(),
+        PLAYER.get_car().cargo_quantity.to_string().cyan(),
         booze,
-        player.car.name.to_string().green(),
-        player.car.cgo.real
+        PLAYER.get_car().name.to_string().green(),
+        PLAYER.get_car().cgo.real
     );
     let route = choose_route();
     let route_distance = route.distance;
@@ -325,7 +325,7 @@ fn barter(cargo_status: i32, route: Route) {
         die.to_string().yellow().bold(),
         (money_increment as i32).to_string().green().bold()
     );
-    player.get_money() += money_increment as i32;
+    PLAYER.wallet.add(money_increment as i32);
 }
 
 fn buy() {
