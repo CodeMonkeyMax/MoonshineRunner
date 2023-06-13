@@ -25,4 +25,5 @@ impl Clone for Stat {
 			real: self.real,
 			max: self.max,
 		}
+    }
 }

@@ -771,7 +771,7 @@ fn choose_route() -> Route {
             drawn_routes.push(i as usize);
         }
     }
-    println!("Choose from the available routes. If a route's heat is higher than your car's Incognito Score (INC: {}), it'll be risky!\n", player.car);
+    println!("Choose from the available routes. If a route's heat is higher than your car's Incognito Score (INC: {}), it'll be risky!\n", "INSERT_CAR_HERE");
     println!("\tAvailable Routes:\n");
     let mut routes_fields: Vec<Vec<String>> = Vec::new();
 

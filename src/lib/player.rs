@@ -13,15 +13,7 @@ impl Player {
             still: Still::default(),
         }
     }
-    pub fn get_money(&self) -> i32 {
-        self.money
-    }
-    pub fn get_car(&self) -> Car {
-        self.car.clone()
-    }
-		pub fn get_still(&self) -> Still {
-				self.still.clone()
-		}
+}
 impl std::string::ToString for Player {
     fn to_string(&self) -> String {
         format!("${}", self.money)
