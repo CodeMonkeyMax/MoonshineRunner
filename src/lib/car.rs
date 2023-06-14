@@ -3,7 +3,7 @@ use super::stat::Stat;
 use crossterm::style::Stylize;
 use rand::Rng;
 
-static S_DELTA: i32 = 3;
+static S_DELTA: i32 = 4;
 static A_DELTA: i32 = 2;
 static B_DELTA: i32 = 1;
 static C_DELTA: i32 = 0;
@@ -53,32 +53,69 @@ impl Car {
         car.spd = make_speed(&car_class, &car_type);
 
         car.dur = match &car_type[..] {
-            "Commuter" => Stat::new(rng.gen_range(1..=3), rng.gen_range(3..=5)),
-            "Truck" => Stat::new(rng.gen_range(3..=6), rng.gen_range(6..=11)),
-            "Muscle Car" => Stat::new(rng.gen_range(2..=4), rng.gen_range(4..=9)),
-            "Hot Rod" => Stat::new(rng.gen_range(2..=5), rng.gen_range(5..=6)),
-            "Death Trap" => Stat::new(rng.gen_range(2..=3), rng.gen_range(3..=5)),
-            "Big Rig" => Stat::new(rng.gen_range(8..=10), rng.gen_range(10..=12)),
+            "Commuter" => Stat::new(rng.gen_range(2..=3), rng.gen_range(4..=5)),
+            "Truck" => Stat::new(rng.gen_range(5..=6), rng.gen_range(9..=10)),
+            "Muscle Car" => Stat::new(rng.gen_range(3..=4), rng.gen_range(6..=8)),
+            "Hot Rod" => Stat::new(rng.gen_range(2..=3), rng.gen_range(5..=6)),
+            "Death Trap" => Stat::new(rng.gen_range(2..=3), rng.gen_range(4..=5)),
+            "Big Rig" => Stat::new(rng.gen_range(9..=11), rng.gen_range(10..=12)),
             _ => panic!("Invalid car type"),
         };
         car.cgo = match &car_type[..] {
-            "Commuter" => Stat::new(rng.gen_range(5..=15), rng.gen_range(15..=18)),
-            "Truck" => Stat::new(rng.gen_range(15..=25), rng.gen_range(25..=40)),
-            "Muscle Car" => Stat::new(rng.gen_range(10..=20), rng.gen_range(20..=28)),
-            "Hot Rod" => Stat::new(rng.gen_range(4..=17), rng.gen_range(17..=23)),
-            "Death Trap" => Stat::new(rng.gen_range(5..=7), rng.gen_range(7..=20)),
-            "Big Rig" => Stat::new(rng.gen_range(18..=30), rng.gen_range(35..=60)),
+            "Commuter" => Stat::new(rng.gen_range(8..=10), rng.gen_range(22..=26)),
+            "Truck" => Stat::new(rng.gen_range(23..=25), rng.gen_range(36..=40)),
+            "Muscle Car" => Stat::new(rng.gen_range(16..=20), rng.gen_range(25..=28)),
+            "Hot Rod" => Stat::new(rng.gen_range(14..=17), rng.gen_range(21..=24)),
+            "Death Trap" => Stat::new(rng.gen_range(6..=7), rng.gen_range(14..=18)),
+            "Big Rig" => Stat::new(rng.gen_range(26..=30), rng.gen_range(50..=60)),
             _ => panic!("Invalid car type"),
         };
         car.inc = match &car_type[..] {
-            "Commuter" => Stat::new(rng.gen_range(6..=8), rng.gen_range(8..=12)),
-            "Truck" => Stat::new(rng.gen_range(4..=6), rng.gen_range(6..=10)),
-            "Muscle Car" => Stat::new(rng.gen_range(3..=5), rng.gen_range(5..=8)),
-            "Hot Rod" => Stat::new(rng.gen_range(1..=2), rng.gen_range(3..=5)),
+            "Commuter" => Stat::new(rng.gen_range(6..=8), rng.gen_range(10..=12)),
+            "Truck" => Stat::new(rng.gen_range(4..=6), rng.gen_range(7..=9)),
+            "Muscle Car" => Stat::new(rng.gen_range(3..=5), rng.gen_range(5..=7)),
+            "Hot Rod" => Stat::new(rng.gen_range(2..=3), rng.gen_range(3..=5)),
             "Death Trap" => Stat::new(rng.gen_range(1..=2), rng.gen_range(2..=3)),
-            "Big Rig" => Stat::new(rng.gen_range(2..=4), rng.gen_range(4..=6)),
+            "Big Rig" => Stat::new(rng.gen_range(4..=5), rng.gen_range(4..=6)),
             _ => panic!("Invalid car type"),
         };
+
+        match car_prefix.as_str() {
+            "Rusty" => {
+                car.inc.real += 1;
+                car.spd.real += 1;
+                car.dur.real -= 1;
+                car.flavor = "Rust just adds character (and removes weight)!".to_string();
+            },
+            "Old" => {
+                car.inc.real += 1;
+                car.spd.real -= 1;
+                car.dur.real += 1;
+                car.flavor = "Starts with a popsicle stick!".to_string();
+            },
+            "Slick" => {
+                car.inc.real += 1;
+                car.spd.real += 1;
+                car.cgo.real -= 3;
+                car.flavor = "Sheeeeeesh!".to_string();
+            },
+            "Large" => {
+                car.inc.real -= 1;
+                car.spd.real -= 1;
+                car.dur.real += 1;
+                car.cgo.real += car.cgo.real / 4;
+                car.flavor = "Now 8% larger!".to_string();
+            }
+            "Incognito" => {
+                car.inc.real += 1;
+                car.flavor = "Like a normal car, but with nerd glasses!".to_string();
+            },
+            "Gross" => {
+                car.inc.real -= 3;
+                car.flavor = "Ew.".to_string();
+            }
+            _ => car.flavor = "TODO: More flavor text".to_string(),
+        }
 
         let delta;
         match car.class {
@@ -90,14 +127,20 @@ impl Car {
             'F' => delta = F_DELTA,
             _ => panic!("Invalid car class"),
         }
+
         car.spd.real = safe_add(car.spd.real, delta);
+        car.spd.max = safe_add(car.spd.max, delta);
+        car.dur.real = safe_add(car.dur.real, delta);
+        car.dur.max = safe_add(car.dur.max, delta);
+        car.cgo.real = safe_add(car.cgo.real, delta * 3);
+        car.cgo.max = safe_add(car.cgo.max, delta * 3);
+        car.inc.real = safe_add(car.inc.real, delta);
+        car.inc.max = safe_add(car.inc.max, delta);
         car.name = format!("[{}] {} {}", car.class, car_prefix, car_type);
-        car.flavor = "TODO: More flavor text".to_string();
-        car.price = ((10 + delta) * (10 + delta)) as u32 * (tier + 4) as u32;
+        car.price = 2 * ((5 + delta) * (5 + delta)) as u32 * (tier + 6) as u32;
         car.current_durability = car.dur.real;
         car
     }
-
 }
 
 pub fn safe_add(a: u32, b: i32) -> u32 {
@@ -111,12 +154,12 @@ pub fn safe_add(a: u32, b: i32) -> u32 {
 fn make_speed(car_class: &char, car_type: &String) -> Stat {
     let rng = &mut rand::thread_rng();
     let car_speed = match &car_type[..] {
-        "Commuter" => Stat::new(rng.gen_range(2..=5), rng.gen_range(5..=6)),
-        "Truck" => Stat::new(rng.gen_range(1..=4), rng.gen_range(4..=8)),
-        "Muscle Car" => Stat::new(rng.gen_range(3..=6), rng.gen_range(6..=10)),
-        "Hot Rod" => Stat::new(rng.gen_range(4..=7), rng.gen_range(7..=11)),
-        "Death Trap" => Stat::new(rng.gen_range(5..=7), rng.gen_range(8..=12)),
-        "Big Rig" => Stat::new(rng.gen_range(1..=3), rng.gen_range(3..=6)),
+        "Commuter" => Stat::new(rng.gen_range(2..=3), rng.gen_range(4..=6)),
+        "Truck" => Stat::new(rng.gen_range(3..=4), rng.gen_range(6..=8)),
+        "Muscle Car" => Stat::new(rng.gen_range(5..=6), rng.gen_range(6..=10)),
+        "Hot Rod" => Stat::new(rng.gen_range(6..=7), rng.gen_range(10..=11)),
+        "Death Trap" => Stat::new(rng.gen_range(7..=8), rng.gen_range(12..=12)),
+        "Big Rig" => Stat::new(rng.gen_range(1..=2), rng.gen_range(4..=5)),
         _ => panic!("Invalid car type"),
     };
 
@@ -169,7 +212,7 @@ fn make_type(class: char, tier: u8) -> String {
     ];
     let car_type: String = match tier {
         1 => car_types
-            .get(rng.gen_range(3..car_types.len() - 1))
+            .get(rng.gen_range(3..car_types.len()))
             .unwrap_or(&"Bug".to_string())
             .to_string(),
         2 => car_types

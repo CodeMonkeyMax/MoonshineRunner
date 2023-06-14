@@ -93,7 +93,7 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
         "MOONSHINE RUNNER ".bold().blue(),
         "♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️ ♠️ ♦️ ♥️ ♣️");
     print_separator();
-    print_money_progress(player.money as u32, 10000);
+    print_money_progress(player.money as u32, 6000);
     print_separator();
     let mut message_components: Vec<String> = vec![];
     match round_stage {
@@ -244,7 +244,7 @@ pub fn print_money_progress(real: u32, max: u32) {
     let mut factor = 0;
     if sum != 0 {
         // can't divide a negative unsigned int!
-        factor = (sum - 1) / 32; // if 0, sum is less than scale. '-1' stops a max value from triggering a resize. If 1, sum is greater, so size should double (by halving values).
+        factor = (sum - 1) / 42; // if 0, sum is less than scale. '-1' stops a max value from triggering a resize. If 1, sum is greater, so size should double (by halving values).
     }
     //println!("Real: {} Max: {} Factor: {}", real, max, factor);
     let _real = real / (factor + 1);
@@ -257,7 +257,7 @@ pub fn print_money_progress(real: u32, max: u32) {
         print!("{}","$".dim());
     }
     print!("]");
-    print!(" {}/{}", real.to_string().green(), max.to_string().bold());
+    print!(" ${} / ${}", real.to_string().green(), max.to_string().bold());
     println!();
 }
 

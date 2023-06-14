@@ -8,7 +8,7 @@ pub mod lib;
 
 pub static MAX_STAT: u32 = 24;
 pub static CAR_STAT_LENGTH: u8 = 12;
-pub static MONEY_MULT: f64 = 10.0;
+pub static MONEY_MULT: f64 = 18.0;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // MAIN ////////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,7 @@ pub static MONEY_MULT: f64 = 10.0;
 
 fn main() {
     //crossterm::terminal::enable_raw_mode();
+
     clear();
     let mut player: Player = start();
     let mut player_quit = false;
@@ -39,7 +40,7 @@ fn main() {
             //BARTER
             if cargo_status > 0 {
                 clear();
-                prompt_to_continue(Some("barter stage".to_string()));
+                //prompt_to_continue(Some("barter stage".to_string()));
                 barter(&mut player, cargo_status, route);
             } else if cargo_status < 0 {
                 player.car = default_car();
@@ -51,7 +52,7 @@ fn main() {
             prompt_to_continue(Some("buy stage".to_string()));
             buy(&mut player);
 
-            if player.money >= 10000 {
+            if player.money >= 6000 {
                 println!("You won!");
                 end_round = true;
                 player_quit = true;
@@ -67,12 +68,12 @@ fn main() {
 
 fn start() -> Player {
     let mut player = Player::new();
-    player.money = 1000;
+    player.money = 400;
     player.car.name = "[F] Rusty Hatchback".to_string();
-    player.car.spd = Stat::new(2, 5);
+    player.car.spd = Stat::new(3, 5);
     player.car.dur = Stat::new(2, 5);
     player.car.cgo = Stat::new(8, 15);
-    player.car.inc = Stat::new(2, 5);
+    player.car.inc = Stat::new(4, 7);
     player.car.flavor = "Have you had your tetanus shots?".to_string();
     player
 }
@@ -111,7 +112,7 @@ fn brew(mut player: &mut Player) {
         std::io::stdout().flush().unwrap();
 
         // Wait for a short duration
-        thread::sleep(Duration::from_millis(30));
+        //thread::sleep(Duration::from_millis(1));
     }
     println!();
     println!();
@@ -134,8 +135,8 @@ fn brew(mut player: &mut Player) {
     };
     let roll = get_random_number(100);
     let quality = match roll {
-        v if v < quality_odds_map.0 => 1,
-        v if v < quality_odds_map.0 + quality_odds_map.1 => 2,
+        v if v <= quality_odds_map.0 => 1,
+        v if v <= (quality_odds_map.0 + quality_odds_map.1) => 2,
         _ => 3,
     };
     // Set Quantity
@@ -164,7 +165,7 @@ fn brew(mut player: &mut Player) {
                 output,
                 "White Lightning".green()
             );
-            player.car.cargo_quality = 1;
+            player.car.cargo_quality = 3;
         }
         _ => panic!("{}", "BAD NUMBER!".red()),
     }
@@ -313,7 +314,7 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
             mult = cargo_status as f64 / (2.0 * player.car.dur.real as f64) + 0.5;
         }
     }
-    println!("DEBUG: Mult = {}", mult);
+    //println!("DEBUG: Mult = {}", mult);
     mult = mult * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT;
     mult = mult * route.prices[player.car.cargo_quality as usize] as f64;
     let die = get_random_number(6) + 1;
@@ -326,13 +327,14 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
         6 => mult * 1.15,
         _ => panic!("The die has died and turned into nonsense. Seek professional help."),
     };
+    print_header(player, 3);
     println!(
         "You rolled a {}! Given this and the condition of your cargo, you get: ${:.2}",
         die.to_string().yellow().bold(),
         (money_increment as i32).to_string().green().bold()
     );
-    prompt_to_continue(None);
     player.money += money_increment as i32;
+    prompt_to_continue(None);
 }
 
 fn buy(player: &mut Player) {
@@ -474,9 +476,11 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                         return true;
                     } else {
                         println!("{}","Not enough change, chump!".bold().red());
+                        prompt_to_continue(None);
                     }
                 } else {
                     println!("{}","Woah there! You're already maxed out, speed racer!".bold().yellow());
+                    prompt_to_continue(None);
                 }
                 return false;
             }
@@ -489,9 +493,11 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                         return true;
                     } else {
                         println!("{}","Not enough change, chump!".bold().red());
+                        prompt_to_continue(None);
                     }
                 } else {
                     println!("{}","Woah there! You're already maxed out, speed racer!".bold().yellow());
+                    prompt_to_continue(None);
                 }
                 return false;
             }
@@ -504,9 +510,11 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                         return true;
                     } else {
                         println!("{}","Not enough change, chump!".bold().red());
+                        prompt_to_continue(None);
                     }
                 } else {
                     println!("{}","Woah there! You're already maxed out, speed racer!".bold().yellow());
+                    prompt_to_continue(None);
                 }
                 return false;
             }
@@ -525,9 +533,11 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                         return true;
                     } else {
                         println!("{}","Not enough change, chump!".bold().red());
+                        prompt_to_continue(None);
                     }
                 } else {
                     println!("{}","Woah there Pappy, you're already maxed out!".bold().yellow());
+                    prompt_to_continue(None);
                 }
                 return false;
             }
@@ -540,9 +550,11 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                         return true;
                     } else {
                         println!("{}","Not enough change, chump!".bold().red());
+                        prompt_to_continue(None);
                     }
                 } else {
                     println!("{}","Woah there Pappy, you're already maxed out!".bold().yellow());
+                    prompt_to_continue(None);
                 }
                 return false;
             }
@@ -555,9 +567,11 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                         return true;
                     } else {
                         println!("{}","Not enough change, chump!".bold().red());
+                        prompt_to_continue(None);
                     }
                 } else {
                     println!("{}","Woah there Pappy, you're already maxed out!".bold().yellow());
+                    prompt_to_continue(None);
                 }
                 return false;
             }
@@ -735,7 +749,7 @@ fn choose_route() -> Route {
         // Route 2 - Middle of Nowhere too
         Route {
             name: String::from("Country Road 97"),
-            distance: 64,
+            distance: 50,
             heat: 1,
             prefereces: vec![4, 3, 2],
             prices: vec![4, 4, 3],
