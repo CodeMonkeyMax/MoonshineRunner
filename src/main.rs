@@ -112,7 +112,7 @@ fn brew(mut player: &mut Player) {
         std::io::stdout().flush().unwrap();
 
         // Wait for a short duration
-        //thread::sleep(Duration::from_millis(1));
+        thread::sleep(Duration::from_millis(10));
     }
     println!();
     println!();
@@ -172,7 +172,13 @@ fn brew(mut player: &mut Player) {
 }
 
 fn drive(mut player: &mut Player) -> (i32, Route) {
+    
+    // Set Player Car Durability
+    player.car.current_durability = player.car.dur.real;
+
+    // Header Stuff
     print_header(player, 2);
+    println!("{}", player.car.to_string());
     let booze = match player.car.cargo_quality {
         1 => "Rotgut Wiskee".red(),
         2 => "OK Hooch".yellow(),
@@ -186,17 +192,18 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         player.car.name.to_string().green(),
         player.car.cgo.real
     );
+
+    // Choose Route
     let route = choose_route();
     let route_distance = route.distance;
     let heat = route.heat;
 
+    // Initialize
     let mut distance_traveled: u32 = 0;
     let player_still_alive = true;
     let mut player_spotted = false;
 
-    // Set Player Car Durability
-    player.car.current_durability = player.car.dur.real;
-
+    // Start
     print_header(player, 2);
     println!("| Now you're in the {} stage.", "DRIVE".green());
     println!("| {}", "Start your engine, gambler!".red());
@@ -225,7 +232,6 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
                 _ => (),
             }
             player.car.current_durability = player.car.dur.real;
-            prompt_to_continue(None);
             return chase_result;
         }
 
@@ -235,6 +241,9 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         let die1: u8 = get_random_number(6) as u8 + 1;
         let die2: u8 = get_random_number(6) as u8 + 1;
         let police_roll: u8 = get_random_number(6) as u8 + 1;
+
+        println!("| {}: {}", "Heat".red().bold(), route.heat.to_string().red().bold());
+        print_separator();
 
         // Part 2 - Roll Dice
         print_roll(die1, die2);
@@ -261,6 +270,8 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
 
         // Part 3 - Consequences, John.
         print_header(player, 2);
+        if distance_traveled > route_distance {distance_traveled = route_distance}
+        print_drive_info(player, distance_traveled, route_distance, &route.name);
         print_roll(die1, die2);
         print_separator();
         println!("| {}", "STEALTH CHECK:".blue().italic());
@@ -296,14 +307,15 @@ fn drive(mut player: &mut Player) -> (i32, Route) {
         }
         prompt_to_continue(None);
     }
-    print_solo("You made it!".to_string());
-    prompt_to_continue(None);
+    // print_solo("You made it!".to_string());
+    // prompt_to_continue(None);
     return ((player.car.dur.real as i32 + 1), route);
 }
 
 fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
     let mut mult: f64;
     print_header(player, 3);
+    println!("\n| Congratulaitons on making your delivery.\n| Now let's roll to see how much you can get for it!");
     prompt_to_continue(Some("roll".to_string()));
     match cargo_status {
         -1 => panic!("Player has negative cargo status - should not be in 'barter()' at all!"),
@@ -316,7 +328,7 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
     }
     //println!("DEBUG: Mult = {}", mult);
     mult = mult * cargo_status as f64 * player.car.cargo_quality as f64 * MONEY_MULT;
-    mult = mult * route.prices[player.car.cargo_quality as usize] as f64;
+    mult = mult * route.prices[(player.car.cargo_quality - 1) as usize] as f64;
     let die = get_random_number(6) + 1;
     let money_increment = match die {
         1 => mult * 0.65,
@@ -327,14 +339,13 @@ fn barter(mut player: &mut Player, cargo_status: i32, route: Route) {
         6 => mult * 1.15,
         _ => panic!("The die has died and turned into nonsense. Seek professional help."),
     };
+    player.money += money_increment as i32;
     print_header(player, 3);
     println!(
-        "You rolled a {}! Given this and the condition of your cargo, you get: ${:.2}",
+        "\n| You rolled a {}/6...\n| Given the condition of your cargo, you get: ${:.2}!\n",
         die.to_string().yellow().bold(),
         (money_increment as i32).to_string().green().bold()
     );
-    player.money += money_increment as i32;
-    prompt_to_continue(None);
 }
 
 fn buy(player: &mut Player) {
@@ -490,6 +501,7 @@ fn try_buy(mut player: &mut Player, category_code: char, item_code: char) -> boo
                     if player.money >= cost {
                         player.car.dur.real += 1;
                         player.money -= cost;
+                        player.car.current_durability = player.car.dur.real;
                         return true;
                     } else {
                         println!("{}","Not enough change, chump!".bold().red());
@@ -599,7 +611,7 @@ fn chase(
     // Start Loop
     while num_rolls_left > 0 {
         // Header n Stuff
-        print_header(player, 2);
+        print_header(player, 5);
         print_drive_info(player, distance_traveled, route_distance, &route.name);
 
         // Check if the player has arrived
@@ -615,6 +627,8 @@ fn chase(
             num_rolls_left
         );
         print_separator();
+        println!("| {}: {}", "Heat".red().bold(), route.heat.to_string().red().bold());
+        print_separator();
 
         // Roll Dice & Prompt for player input
         // Here's where the player would roll the dice if that animation existed
@@ -623,6 +637,7 @@ fn chase(
         let police_roll: u8 = get_random_number(6) as u8 + 1;
         print_roll(die1, die2);
         print_roll_prompt(player, false, die1, die2);
+        println!();
         // Get & Process the player input
         let other_die: u8;
         let die_choice = get_instant_input(&['1', '2']).unwrap().to_digit(10);
@@ -646,7 +661,7 @@ fn chase(
 
         // Same Header Order
         // Feel like I shouldn't print car here, maybe. Seems distracting.
-        print_header(player, 2);
+        print_header(player, 5);
         print_drive_info(player, distance_traveled, route_distance, &route.name);
         println!(
             "| {} The cops are forming a {} in {} rolls!",
@@ -681,10 +696,11 @@ fn chase(
         );
 
         println!();
+        if distance_traveled > route_distance {distance_traveled = route_distance}
 
         // Give Results
         let total_heat: u32 = police_roll as u32 + heat;
-        if other_die as u32 + player.car.inc.real < total_heat {
+        if other_die as u32 + player.car.inc.real < total_heat && distance_traveled < route_distance {
             println!(
                 "| Cops' Attack exceeds your Defense:\n| {}",
                 "You've been rammed!".red()
@@ -692,7 +708,7 @@ fn chase(
             player.car.current_durability -= 1;
             if player.car.current_durability == 0 {
                 // Header n Stuff
-                print_header(player, 2);
+                print_header(player, 5);
                 print_drive_info(player, distance_traveled, route_distance, &route.name);
                 println!(
                     "| Cops' Attack exceeds your Defense:\n| {}",
@@ -757,7 +773,7 @@ fn choose_route() -> Route {
         // Route 3 - The Docks
         Route {
             name: String::from("Marina Dr."),
-            distance: 32,
+            distance: 38,
             heat: 3,
             prefereces: vec![4, 3, 2],
             prices: vec![5, 7, 4],
@@ -877,18 +893,11 @@ fn get_instant_input(chars: &[char]) -> Option<char> {
 }
 
 fn wait_for_enter() {
-    crossterm::terminal::enable_raw_mode().unwrap();
-    let mut player_pressed_enter = false;
-    while !player_pressed_enter {
-        if let Ok(Event::Key(key_event)) = read() {
-            match key_event.code {
-                KeyCode::Enter => player_pressed_enter = true,
-                KeyCode::Esc => quit(),
-                _ => continue,
-            }
-        }
+    let mut enter_pressed: Option<bool> = None;
+
+   while enter_pressed == None {
+        if get_instant_input(&['\0']) == Some('\0') { enter_pressed = Some(true); }
     }
-    crossterm::terminal::disable_raw_mode().unwrap();
 }
 
 fn await_key_down() -> Option<char> {
@@ -900,7 +909,6 @@ fn await_key_down() -> Option<char> {
     while key_down == None {
         crossterm::terminal::enable_raw_mode().unwrap();
         if let Event::Key(event) = read().ok()? {
-            // MATCH EVENT::KEYEVENTKIND FOR "PRESS" TYPE
             key_down = match event.kind {
                 KeyEventKind::Press => Some(event.code),
                 _ => None,
@@ -911,6 +919,7 @@ fn await_key_down() -> Option<char> {
     key = match key_down {
         Some(KeyCode::Char(c)) => Some(c),
         Some(KeyCode::Tab) => Some('\0'),
+        Some(KeyCode::Enter) => Some('\0'),
         Some(KeyCode::Esc) => {
             quit();
             None

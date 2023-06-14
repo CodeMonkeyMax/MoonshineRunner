@@ -142,6 +142,16 @@ pub fn print_header(player: &mut crate::Player, round_stage: i32) {
                 player.still.to_string()
             ));
         }
+        5 => {
+            message_components.push("|
+|            ________  _____   _____ ______
+|           / ____/ / / /   | / ___// ____/
+|          / /   / /_/ / /| | \\__ \\/ __/   
+|         / /___/ __  / ___ |___/ / /___   
+|         \\____/_/ /_/_/  |_/____/_____/   
+|                                          \n".to_string());
+            message_components.push("| Pedal to the goddamn metal.\n".to_string());
+        }
         _ => ()
     }
 
@@ -199,7 +209,7 @@ pub fn print_roll_prompt(player: &mut crate::Player, player_is_hidden: bool, die
         );
         let sum2 = (die2 as u32 + player.car.spd.real).to_string();
         println!(
-            "| {}: [{}] {} + {} -> {} Total Speed",
+            "| {}: [{}] {} + {} -> {} Total Speed\n",
             "Die 2".cyan(),
             die2,
             die_from_u8(die2),

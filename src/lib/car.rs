@@ -260,16 +260,20 @@ impl std::string::ToString for Car {
                 .red();
         }
         format!(
-            "{}\n| SPD: {} {}\n| DUR: {} {}\n| CGO: {} {}\n| INC: {} {}\n| {}",
+            "{}\n| SPD: {} {}/{}\n| DUR: {} {}/{}\n| CGO: {} {}/{}\n| INC: {} {}/{}\n| {}",
             &self.name.to_string().green(),
             self.spd,
             self.spd.real,
+            self.spd.max,
             self.dur,
             durmessage,
+            self.dur.max,
             self.cgo,
             self.cgo.real,
+            self.cgo.max,
             self.inc,
             self.inc.real,
+            self.inc.max,
             &self.flavor.to_string().red()
         )
     }
